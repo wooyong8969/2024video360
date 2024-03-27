@@ -1,3 +1,4 @@
+'''/**wasd에 따라 조금 더 부드럽게 360영상 회전**/'''
 import cv2
 import numpy as np
 from nfov import NFOV

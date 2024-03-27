@@ -1,3 +1,11 @@
+"""/**LatLong Image에서 사용자가 정의한 중심점을 기준으로 NFOV 이미지 생성**/"""
+
+'''
+The MIT License (MIT)
+Copyright (c) 2021 Vít Ambrož
+https://github.com/VitaAmbroz/360Tracking
+
+'''
 from cv2 import cv2
 from math import pi
 import numpy as np

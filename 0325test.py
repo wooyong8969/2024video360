@@ -1,12 +1,9 @@
-# import sys
-# sys.path.insert(0, 'D:/W00Y0NG/PRGM2/360WINDOW/360Tracking/code')
-
+'''/**wasd에 따라 360영상 회전**/'''
 from nfov import NFOV
 import cv2
 import numpy as np
 
 # 비디오 경로 설정
-# video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\360Tracking\code\annotation\dataset-demo\demo-annotation\demo.mp4'
 video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\DownLoad\yujinhong.mp4'
 video = cv2.VideoCapture(video_path)
 

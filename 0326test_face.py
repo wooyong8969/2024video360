@@ -1,3 +1,4 @@
+'''/**실시간으로 웹캠을 읽어들여, 눈 관련 랜드마크만 표시**/'''
 import cv2
 import mediapipe as mp
 
@@ -45,15 +46,15 @@ while cap.isOpened():
                 y = int(face_landmarks.landmark[idx].y * image.shape[0])
                 left_eye_points.append((x, y))
                 cv2.circle(image, (x, y), 3, (0, 255, 0), -1)
-
+            '''
             mp_drawing.draw_landmarks(
                 image=image,
                 landmark_list=face_landmarks,
                 connections=mp_face_mesh.FACEMESH_CONTOURS,
                 landmark_drawing_spec=drawing_spec,
-                connection_drawing_spec=drawing_spec)
-
-
+                connection_drawing_spec=None)
+            '''
+            
     # 오른쪽과 왼쪽 눈 랜드마크 좌표 출력
     print("Right Eye:", right_eye_points)
     print("Left Eye:", left_eye_points)
