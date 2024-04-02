@@ -1,8 +1,8 @@
 '''/**양쪽 눈의 중앙이 화면의 중심에 오도록 360도 영상 회전**/''' 
 import cv2
 import numpy as np
-from anon_face_landmark import FaceLandmarkDetector
-from anon_nfov import NFOV
+from com_face_landmark import FaceLandmarkDetector
+from com_nfov import NFOV
 
 video_path = r'2024video360/yujinhong.mp4'
 cap = cv2.VideoCapture(0) 
