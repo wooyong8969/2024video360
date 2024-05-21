@@ -11,10 +11,9 @@ nfov = NFOV(height=400, width=800)
 detector = FaceLandmarkDetector()
 
 def calculate_dx(eye_center, frame_width):
-    # 화면 중심과 눈 중심의 차이를 구해 dx로 사용
     screen_center = frame_width / 2
     dx = (eye_center[0] - screen_center) / frame_width
-    return dx / 5
+    return dx
 
 while True:
     ret, frame = video.read()
@@ -32,7 +31,6 @@ while True:
         eye_center = detector.get_eye_center(right_eye_points, left_eye_points)
         dx = calculate_dx(eye_center, image.shape[1])
         
-        # 원근 투영 변환을 위한 새로운 중심점 계산
         center_point = np.array([0.5 + dx, 0.5])
         frame_nfov = nfov.toNFOV(frame, center_point)
     else:
