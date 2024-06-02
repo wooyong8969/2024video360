@@ -1,3 +1,5 @@
+'''/**모니터 상에서 사람 얼굴의 가로 세로 픽셀 계산**/''' 
+
 import cv2
 import mediapipe as mp 
 import numpy as np

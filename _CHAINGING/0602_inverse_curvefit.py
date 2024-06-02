@@ -1,3 +1,4 @@
+'''/**dy와 변화 시야각 theta 사이의 관계식 파라미터 계산 - 실패**/''' 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
