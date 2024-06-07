@@ -15,8 +15,10 @@ class NFOV():
     def __init__(self, height=400, width=800):
         # FOV(Field Of View)의 기본값[90°, 45°]으로 설정
         self.FOV = [0.5, 0.5]
+        # 앞으로 사용할 값 정의
         self.PI = pi
         self.PI_2 = pi * 0.5
+        # 출력 이미지의 너비와 높이 설정
         self.height = height
         self.width = width
 
@@ -85,6 +87,6 @@ class NFOV():
         self.sphericalCoordReshaped = self.sphericalCoord.reshape(self.height, self.width, 2).astype(np.float32) % 1
 
         # 계산된 좌표를 사용해 원본 이미지에서 NFOV 이미지 추출
-        # cv2.remap 함수로 픽셀을 새로운 위치로 매핑
+        # cv2.remap 함수로 픽셀을 새로운 위치로 매핑합니다.
         out = cv2.remap(self.frame, (self.sphericalCoordReshaped[..., 0] * self.frame_width), (self.sphericalCoordReshaped[..., 1] * self.frame_height), interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
         return out

@@ -7,11 +7,11 @@ def calculate_view_angle(position, corner):
     vector = corner - position
     return vector / np.linalg.norm(vector)
 
-R = 300
+R = 600
 box_size = 200
 half_size = box_size / 2
-dx = 75
-dy = 60
+dx = 50
+dy = -50
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -35,7 +35,7 @@ window_corners = np.array([
 positions = [
     np.array([0, 0, 0]),
     np.array([dx, 0, 0]),
-    np.array([0, dy, 0]),
+    #np.array([0, dy, 0]),
     np.array([dx, dy, 0])
 ]
 
@@ -74,12 +74,12 @@ for position, color in zip(positions, colors):
 corners = np.array([
     [half_size, half_size, half_size],
     [half_size, half_size, -half_size],
-    [half_size, -half_size, half_size],
-    [half_size, -half_size, -half_size],
+    #[half_size, -half_size, half_size],
+    #[half_size, -half_size, -half_size],
     [-half_size, half_size, half_size],
     [-half_size, half_size, -half_size],
-    [-half_size, -half_size, half_size],
-    [-half_size, -half_size, -half_size]
+    #[-half_size, -half_size, half_size],
+    #[-half_size, -half_size, -half_size]
 ])
 for start in corners:
     for end in corners:

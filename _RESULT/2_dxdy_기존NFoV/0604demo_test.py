@@ -4,7 +4,7 @@ import numpy as np
 from face_landmark2 import FaceLandmarkDetector
 from nfov2 import NFOV
 
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_video\0528_test_video.mp4'
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\0604_black_win.mp4'
 cap = cv2.VideoCapture(0) 
 video = cv2.VideoCapture(video_path) 
 
@@ -21,7 +21,7 @@ def calculate_k(distance_R=100, base_distance_cm=30, base_width_px=200):
     px_to_cm = base_distance_cm / base_width_px
     distance_cm = face_width * px_to_cm # 모니터와 사람 사이의 거리 (cm단위)
 
-    k = 50 / distance_cm    # 해당 부분 합리적이지 X
+    k = 100 / distance_cm    # 해당 부분 합리적이지 X
     return k
 
 def calculate_dx(eye_center, frame_width):
@@ -52,17 +52,18 @@ while True:
         dx = calculate_dx(eye_center, image.shape[1])
         
         # 원근 투영 변환을 위한 새로운 중심점 계산
-        center_point = np.array([0.5 - dx, 0.5])
+        center_point = np.array([0.5 + dx, 0.5])
         frame_nfov = nfov.toNFOV(frame, center_point)
 
         # 눈 랜드마크 출력
-        for point in right_eye_points + left_eye_points:
-            flipped_x = frame_nfov.shape[1] - int(point[0])
-            cv2.circle(frame_nfov, (flipped_x, int(point[1])), 2, (0, 255, 0), -1)
+        #for point in right_eye_points + left_eye_points:
+        #    flipped_x = frame_nfov.shape[1] - int(point[0])
+        #    cv2.circle(frame_nfov, (flipped_x, int(point[1])), 2, (0, 255, 0), -1)
     else:
-        frame_nfov = nfov.toNFOV(frame, np.array([0.5, 0.5]))
+        frame_nfov = nfov.toNFOV(frame, center_point)
+        #frame_nfov = nfov.toNFOV(frame, np.array([0, 0]))
 
-    image = cv2.flip(image, 1)
+    frame_nfov = cv2.flip(frame_nfov, 1)
     cv2.imshow('360 View', frame_nfov)
 
     key = cv2.waitKey(1)
