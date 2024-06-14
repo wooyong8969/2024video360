@@ -30,7 +30,7 @@ def crop_center(image, scale=3):
 loop_counter = 0
 start_time = time.time()
 
-while time.time() - start_time < 5:  # 1초 동안 실행
+while True:
     ret, frame = video.read()
     if not ret:
         break
@@ -54,7 +54,6 @@ while time.time() - start_time < 5:  # 1초 동안 실행
     frame_nfov = crop_center(frame_nfov)
 
     cv2.imshow('360 View', frame_nfov)
-    loop_counter += 1
 
     key = cv2.waitKey(1)
     if key == ord('q'):
@@ -63,5 +62,3 @@ while time.time() - start_time < 5:  # 1초 동안 실행
 cap.release()
 video.release()
 cv2.destroyAllWindows()
-
-print(f" {loop_counter}")
