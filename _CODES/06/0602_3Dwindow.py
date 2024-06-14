@@ -1,4 +1,5 @@
-'''/**Intersection을 사각형으로 확장, 교점 계산**/''' 
+'''/**dy 라인에서 dx 만큼 이동 시 변화하는 시야각 계산**/'''
+
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -7,11 +8,11 @@ def calculate_view_angle(position, corner):
     vector = corner - position
     return vector / np.linalg.norm(vector)
 
-R = 600
-box_size = 200
+R = 300
+box_size = 10
 half_size = box_size / 2
-dx = 50
-dy = -50
+dx = 5
+dy = -70
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -36,7 +37,7 @@ positions = [
     np.array([0, 0, 0]),
     np.array([dx, 0, 0]),
     #np.array([0, dy, 0]),
-    np.array([dx, dy, 0])
+    #np.array([dx, dy, 0])
 ]
 
 # 각 위치에서 교점 계산 및 시선 표시
@@ -84,7 +85,7 @@ corners = np.array([
 for start in corners:
     for end in corners:
         if np.linalg.norm(start-end) == box_size:
-            ax.plot([start[0], end[0]], [start[1], end[1]], [start[2], end[2]], 'g-', linewidth=1)
+            ax.plot([start[0], end[0]], [start[1], end[1]], [start[2], end[2]], 'r-', linewidth=1)
 
 ax.set_xlim([-R, R])
 ax.set_ylim([-R, R])

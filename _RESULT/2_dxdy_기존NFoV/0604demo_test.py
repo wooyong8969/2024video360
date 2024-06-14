@@ -21,7 +21,7 @@ def calculate_k(distance_R=100, base_distance_cm=30, base_width_px=200):
     px_to_cm = base_distance_cm / base_width_px
     distance_cm = face_width * px_to_cm # 모니터와 사람 사이의 거리 (cm단위)
 
-    k = 100 / distance_cm    # 해당 부분 합리적이지 X
+    k = 15 / distance_cm    # 해당 부분 합리적이지 X
     return k
 
 def calculate_dx(eye_center, frame_width):

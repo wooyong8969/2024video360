@@ -64,9 +64,9 @@ while True:
         frame_nfov = nfov.toNFOV(frame, center_point)
 
         # 눈 랜드마크 출력
-        #for point in right_eye_points + left_eye_points:
-        #    flipped_x = frame_nfov.shape[1] - int(point[0])
-        #    cv2.circle(frame_nfov, (flipped_x, int(point[1])), 2, (0, 255, 0), -1)
+        for point in right_eye_points + left_eye_points:
+            flipped_x = frame_nfov.shape[1] - int(point[0])
+            cv2.circle(frame_nfov, (flipped_x, int(point[1])), 2, (0, 255, 0), -1)
     else:
         frame_nfov = nfov.toNFOV(frame, center_point)
         #frame_nfov = nfov.toNFOV(frame, np.array([0, 0]))

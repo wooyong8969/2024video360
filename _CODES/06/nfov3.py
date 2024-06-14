@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from math import pi
+from math import pi, atan2, tan, cos, sin, sqrt
 import mediapipe as mp
 
 class FaceLandmarkDetector:
@@ -69,13 +69,6 @@ class FaceLandmarkDetector:
         height = max_y - min_y
         return width, height
 
-
-
-
-
-
-
-
 class IntersectionCalculator:
     def __init__(self, R, box_height, box_width):
         self.R = R
@@ -116,82 +109,69 @@ class IntersectionCalculator:
         return intersection_points
 
 
-
-
-
-
-
-
-
-
-
 class NFOV:
-    def __init__(self, height, width, R):
+    def __init__(self, height=400, width=800):
         self.FOV = [0.5, 0.5]
         self.PI = pi
         self.PI_2 = pi * 0.5
         self.height = height
         self.width = width
-        self.R = R
+        self.screen_points = self._get_screen_img()
+        self.convertedScreenCoord = None
+        self.sphericalCoord = None
+        self.sphericalCoordReshaped = None
 
     def _get_coord_rad_point(self, point):
         return (point * 2 - 1) * np.array([self.PI, self.PI_2])
 
-    def toNFOV(self, frame, intersections):
-        frame_height, frame_width = frame.shape[:2]
+    def _get_coord_rad_screen_points(self):
+        return (self.screen_points * 2 - 1) * np.array([self.PI, self.PI_2]) * (np.ones(self.screen_points.shape) * self.FOV)
 
-        try:
-            spherical_points = [self._get_coord_rad_point(intersection[:2] / self.R) for intersection in intersections]
-            spherical_points = np.array(spherical_points)
+    def _get_screen_img(self):
+        xx, yy = np.meshgrid(np.linspace(0, 1, self.width), np.linspace(0, 1, self.height))
+        return np.array([xx.ravel(), yy.ravel()]).T
 
-            min_lon = spherical_points[:, 0].min()
-            max_lon = spherical_points[:, 0].max()
-            min_lat = spherical_points[:, 1].min()
-            max_lat = spherical_points[:, 1].max()
+    def _calcSphericaltoGnomonic(self, convertedScreenCoord):
+        x = convertedScreenCoord.T[0]
+        y = convertedScreenCoord.T[1]
 
-            lon_range = max_lon - min_lon
-            lat_range = max_lat - min_lat
+        rou = np.sqrt(x ** 2 + y ** 2)
+        c = np.arctan(rou)
+        sin_c = np.sin(c)
+        cos_c = np.cos(c)
 
-            screen_x = ((spherical_points[:, 0] - min_lon) / lon_range) * self.width
-            screen_y = ((spherical_points[:, 1] - min_lat) / lat_range) * self.height
-            # /////////////////////////////
+        lat = np.arcsin(cos_c * np.sin(self.cp[1]) + (y * sin_c * np.cos(self.cp[1])) / rou)
+        lon = self.cp[0] + np.arctan2(x * sin_c, rou * np.cos(self.cp[1]) * cos_c - y * np.sin(self.cp[1]) * sin_c)
 
+        lat = (lat / self.PI_2 + 1.) * 0.5
+        lon = (lon / self.PI + 1.) * 0.5
 
-            projected_img = np.zeros((self.height, self.width, 3), dtype=frame.dtype)
-            for i in range(self.height):
-                for j in range(self.width):
-                    lon = min_lon + j / self.width * lon_range
-                    lat = min_lat + i / self.height * lat_range
-                    x = int((lon / (2 * self.PI) + 0.5) * frame_width)
-                    y = int((lat / self.PI + 0.5) * frame_height)
-                    if 0 <= x < frame_width and 0 <= y < frame_height:
-                        projected_img[i, j] = frame[y, x]
+        return np.array([lon, lat]).T
 
-            return projected_img
-        
-        except Exception as e:
-            print(f"Error in toNFOV: {e}")
+    def toNFOV(self, frame, corners):
+        self.frame = frame
+        self.frame_height = frame.shape[0]
+        self.frame_width = frame.shape[1]
+        self.frame_channel = frame.shape[2]
+
+        if len(corners) != 4:
+            print("Error: Corners input should contain exactly 4 points.")
             return frame
 
+        self.cp = self._get_coord_rad_point(np.mean(corners, axis=0))
+        self.convertedScreenCoord = self._get_coord_rad_screen_points()
+        self.sphericalCoord = self._calcSphericaltoGnomonic(self.convertedScreenCoord)
+        self.sphericalCoordReshaped = self.sphericalCoord.reshape(self.height, self.width, 2).astype(np.float32) % 1
+
+        out = cv2.remap(self.frame, (self.sphericalCoordReshaped[..., 0] * self.frame_width), (self.sphericalCoordReshaped[..., 1] * self.frame_height), interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
+        return out
 
 
-
-
-
-
-
-
-# 초기 설정
-height, width, R = 400, 800, 300
-
-calculator = IntersectionCalculator(R=R, box_height=height, box_width=width)
-nfov = NFOV(height=height, width=width, R=R)
-detector = FaceLandmarkDetector()
-
-# 비디오 캡처 설정
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_video\0528_test_video.mp4'
-cap = cv2.VideoCapture(0)
-video = cv2.VideoCapture(video_path)
+def calculate_dx(eye_center, frame_width):
+    # 화면 중심과 눈 중심의 차이를 구해 dx로 사용
+    screen_center = frame_width / 2
+    dx = (eye_center[0] - screen_center) / frame_width
+    return dx
 
 def calculate_dy(distance_R=100, base_distance_cm=30, base_width_px=200):
     bounds = detector.get_face_bounds(results, frame.shape)
@@ -199,46 +179,72 @@ def calculate_dy(distance_R=100, base_distance_cm=30, base_width_px=200):
         min_x, min_y, max_x, max_y = bounds
         face_width, face_height = detector.get_face_size(min_x, min_y, max_x, max_y)
     
-    px_to_cm = base_distance_cm / base_width_px
-    distance_cm = face_width * px_to_cm # 모니터와 사람 사이의 거리 (cm단위)
+    dy = (base_distance_cm * base_width_px) / face_width # 모니터와 사람 사이의 거리 (cm단위)
+    #print(distance_cm)
+    return dy
 
-    return distance_cm
+def calculate_dz(eye_center, frame_height):
+    screen_center = frame_height / 2
+    dz = (eye_center[1] - screen_center) / frame_height
+    return dz
 
-def calculate_dx(eye_center, frame_width):
-    # 화면 중심과 눈 중심의 차이를 구해 dx로 사용
-    screen_center = frame_width / 2
-    dx = (screen_center - eye_center[0]) / frame_width
-    return dx
+def calculate_da(eye_center, frame_width, frame_height):
+    dx = calculate_dx(eye_center, frame_width)
+    dz = calculate_dz(eye_center, frame_height)
+    dy = calculate_dy()
+    da = (dx / dy, dz / dy) * 10
+    return da
 
-while True:
-    ret, frame = video.read()
+
+# IntersectionCalculator, FaceLandmarkDetector 클래스와 calculate_dx, calculate_dy, calculate_dz, calculate_da 함수들은 이전 코드와 동일하게 유지
+
+# 초기 설정
+height, width, R = 400, 800, 300
+
+calculator = IntersectionCalculator(R=R, box_height=height, box_width=width)
+nfov = NFOV(height=height, width=width)
+detector = FaceLandmarkDetector()
+
+# 비디오 캡처 설정
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_video\0528_test_video.mp4'
+cap = cv2.VideoCapture(0)
+video = cv2.VideoCapture(video_path)
+
+while cap.isOpened():
+    ret, frame = cap.read()
     if not ret:
-        break
+        print("Ignoring empty camera frame.")
+        continue
 
-    frame = cv2.flip(frame, 1)
+    ret, video_frame = video.read()
+    if not ret:
+        print("Ignoring empty video frame.")
+        continue
 
-    success, image = cap.read()
-    if not success:
-        print("웹캠 오류")
-        break
-
-    results, image = detector.process_frame(image)
+    results, image = detector.process_frame(frame)
     right_eye_points, left_eye_points = detector.draw_landmarks(image, results)
+
     if right_eye_points and left_eye_points:
         eye_center = detector.get_eye_center(right_eye_points, left_eye_points)
-        dx = calculate_dx(eye_center, image.shape[1])
-        dy = calculate_dy()
-        intersections = calculator.calculate_intersections(dx, dy)
-        frame_nfov = nfov.toNFOV(frame, intersections)
+        dy = calculate_dy(results, frame)
+        if dy:
+            da = calculate_da(eye_center, frame.shape[1], frame.shape[0], dy)
+            intersections = calculator.calculate_intersections(da[0], da[1])
+
+            if len(intersections) == 4:
+                nfov_image = nfov.toNFOV(video_frame, intersections)
+                cv2.imshow('NFOV', nfov_image)
+            else:
+                print("Error: Did not get 4 intersection points.")
+        else:
+            print("Error: dy calculation failed.")
     else:
-        frame_nfov = frame
+        print("Error: Eye points detection failed.")
 
-    cv2.imshow('360 View', frame_nfov)
+    cv2.imshow('MediaPipe FaceMesh', image)
 
-    key = cv2.waitKey(1)
-    if key == ord('q'):
+    if cv2.waitKey(5) & 0xFF == 27:
         break
 
 cap.release()
-video.release()
 cv2.destroyAllWindows()

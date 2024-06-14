@@ -1,6 +1,6 @@
-'''/**양쪽 눈의 중앙이 화면의 중심에 오도록 360도 영상 회전**/''' 
 import cv2
 import numpy as np
+import time
 from com_face_landmark import FaceLandmarkDetector
 from com_nfov import NFOV
 
@@ -12,15 +12,27 @@ nfov = NFOV(height=400, width=800)
 detector = FaceLandmarkDetector()
 
 def calculate_dx(eye_center, frame_width):
-    # 화면 중심과 눈 중심의 차이를 구해 dx로 사용
     screen_center = frame_width / 2
     dx = (screen_center - eye_center[0]) / frame_width
-    return dx / 15
+    return dx / 10
 
-while True:
+def crop_center(image, scale=3):
+    height, width = image.shape[:2]
+    new_height = height // scale
+    new_width = width // scale
+    
+    start_x = (width - new_width) // 2
+    start_y = (height - new_height) // 2
+    
+    cropped_image = image[start_y:start_y + new_height, start_x:start_x + new_width]
+    return cv2.resize(cropped_image, (width, height), interpolation=cv2.INTER_LINEAR)
+
+loop_counter = 0
+start_time = time.time()
+
+while time.time() - start_time < 5:  # 1초 동안 실행
     ret, frame = video.read()
     if not ret:
-        print("영상 오류")
         break
 
     success, image = cap.read()
@@ -34,13 +46,15 @@ while True:
         eye_center = detector.get_eye_center(right_eye_points, left_eye_points)
         dx = calculate_dx(eye_center, image.shape[1])
         
-        # 원근 투영 변환을 위한 새로운 중심점 계산
-        center_point = np.array([0.5 - dx, 0.5])
+        center_point = np.array([0.51 - dx, 0.5])
         frame_nfov = nfov.toNFOV(frame, center_point)
     else:
-        frame_nfov = nfov.toNFOV(frame, np.array([0.5, 0.5]))
+        frame_nfov = nfov.toNFOV(frame, np.array([0.51, 0.5]))
+
+    frame_nfov = crop_center(frame_nfov)
 
     cv2.imshow('360 View', frame_nfov)
+    loop_counter += 1
 
     key = cv2.waitKey(1)
     if key == ord('q'):
@@ -49,3 +63,5 @@ while True:
 cap.release()
 video.release()
 cv2.destroyAllWindows()
+
+print(f" {loop_counter}")

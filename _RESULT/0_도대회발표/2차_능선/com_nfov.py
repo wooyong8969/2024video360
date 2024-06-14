@@ -49,7 +49,7 @@ class NFOV():
         # 360도 이미지의 특정 영역을 일반적인 2D 이미지로 투영하는 데 사용
         # 결과적으로 위도와 경도를 나타내는 값이 반환됨
 
-        # 아래 링크를 통해 360도 이미지에서 NFOV 이미지로의 정확한 투영 방법을 이해할 수 있음!
+        # 아래 링크를 통해 360도 이미지에서 NFOV 이미지로의 정확한 투영 방법을 이해할 수 있다함!
         # http://blog.nitishmutha.com/equirectangular/360degree/2017/06/12/How-to-project-Equirectangular-image-to-rectilinear-view.html
         x = convertedScreenCoord.T[0]
         y = convertedScreenCoord.T[1]
@@ -87,6 +87,6 @@ class NFOV():
         self.sphericalCoordReshaped = self.sphericalCoord.reshape(self.height, self.width, 2).astype(np.float32) % 1
 
         # 계산된 좌표를 사용해 원본 이미지에서 NFOV 이미지 추출
-        # cv2.remap 함수로 픽셀을 새로운 위치로 매핑
+        # cv2.remap 함수로 픽셀을 새로운 위치로 매핑합니다.
         out = cv2.remap(self.frame, (self.sphericalCoordReshaped[..., 0] * self.frame_width), (self.sphericalCoordReshaped[..., 1] * self.frame_height), interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
         return out

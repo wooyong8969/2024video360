@@ -4,7 +4,7 @@ import numpy as np
 from com_face_landmark import FaceLandmarkDetector
 from com_nfov import NFOV
 
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\0604_black_win.mp4'
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\0528_test_video.mp4'
 cap = cv2.VideoCapture(0) 
 video = cv2.VideoCapture(video_path) 
 
@@ -20,7 +20,6 @@ def calculate_dx(eye_center, frame_width):
 while True:
     ret, frame = video.read()
     if not ret:
-        print("영상 오류")
         break
 
     success, image = cap.read()
@@ -40,6 +39,7 @@ while True:
     else:
         frame_nfov = nfov.toNFOV(frame, np.array([0.5, 0.5]))
 
+    frame_nfov = cv2.resize(frame_nfov, (frame_nfov.shape[1] * 2, frame_nfov.shape[0] * 2), interpolation=cv2.INTER_LINEAR)
     cv2.imshow('360 View', frame_nfov)
 
     key = cv2.waitKey(1)
