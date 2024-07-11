@@ -44,14 +44,12 @@ _RESULT 폴더는 이 레포지터리에서 가장 중요한 폴더입니다.
    
       ```예: (VENV) D:\W00Y0NG\PRGM2\360WINDOW>```
    
-      나타나지 않을 경우 아래의 과정 추가 진행해 주세요.
+      나타나지 않을 경우 아래의 과정을 추가 진행해 주세요.
 
 6. (+) Ctrl + Shift + P → Command Palette 열기
 7. (+) Select Interpreter 입력하여 "Python: Select Interpreter" 선택하기
 8. (+) 설치된 python 인터프리터 목록 중, 내가 생성한 가상 환경 선택하기
 
-
-### 필요한 라이브러리
 
 ### 필요한 라이브러리
 
