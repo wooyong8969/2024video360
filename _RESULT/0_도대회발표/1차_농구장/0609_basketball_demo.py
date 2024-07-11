@@ -15,7 +15,7 @@ def calculate_dx(eye_center, frame_width):
     # 화면 중심과 눈 중심의 차이를 구해 dx로 사용
     screen_center = frame_width / 2
     dx = (screen_center - eye_center[0]) / frame_width
-    return dx / 15
+    return dx / 5
 
 while True:
     ret, frame = video.read()
@@ -39,7 +39,7 @@ while True:
     else:
         frame_nfov = nfov.toNFOV(frame, np.array([0.5, 0.5]))
 
-    frame_nfov = cv2.resize(frame_nfov, (frame_nfov.shape[1] * 2, frame_nfov.shape[0] * 2), interpolation=cv2.INTER_LINEAR)
+    #frame_nfov = cv2.resize(frame_nfov, (frame_nfov.shape[1] * 2, frame_nfov.shape[0] * 2), interpolation=cv2.INTER_LINEAR)
     cv2.imshow('360 View', frame_nfov)
 
     key = cv2.waitKey(1)

@@ -1,4 +1,11 @@
-'''/**얼굴 landmark 탐지 클래스 정의**/'''
+"""
+MAIN으로 수정 중인 파일입니다!
+
+
+"""
+
+
+"""/**얼굴 landmark 탐지**/"""
 import cv2
 import mediapipe as mp 
 import numpy as np 
@@ -161,7 +168,20 @@ class NFOV():
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-'''/**'MAIN 실행문**/'''
+"""/**'MAIN 실행문**/"""
+'''
+1. dx, dy, dx 계산 (모니터 상에서 픽셀 변화)
+2. 1번 이용하여 진짜 이동거리 drx, dry, drz 계산 (현실 공간에서 위치 변화)
+3. 2번 이용하여 창문 좌표 이동 (? - drx, ? - dry, ? - drz)
+
+for(4~6): 모니터(창문) 모든 픽셀에 대해 반복, 선형 보간 이용
+4. 3번에서 구한 좌표를 극좌표로 변환
+5. 4번에서 구한 theta, phi 및 동영상 배경 거리 R 이용하여 목표 좌표 계산 (R, theta, phi)
+6. 해당 목표 좌표 출력
+
+
+
+'''
 
 import math
 
@@ -192,6 +212,10 @@ def calculate_dz(eye_center, frame_height):
     dz = (eye_center[1] - screen_center) / frame_height
     return dz
 
+
+pass
+
+def 
 
 def cartesian_to_spherical(x, y, z):
     r = math.sqrt(x**2 + y**2 + z**2)

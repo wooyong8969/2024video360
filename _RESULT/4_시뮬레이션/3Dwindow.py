@@ -1,5 +1,3 @@
-'''/**dy 라인에서 dx 만큼 이동 시 변화하는 시야각 계산**/'''
-
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -8,21 +6,29 @@ def calculate_view_angle(position, corner):
     vector = corner - position
     return vector / np.linalg.norm(vector)
 
-R = 300
-box_size = 10
+R = 700
+box_size = 300
 half_size = box_size / 2
-dx = 5
-dy = -70
+dx = 100
+dy = -100
 
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
+fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={"projection": "3d"})
 
-# 구 그리기
+'''
 phi, theta = np.mgrid[0.0:2.0*np.pi:40j, 0.0:np.pi:20j]
 x = R * np.sin(theta) * np.cos(phi)
 y = R * np.sin(theta) * np.sin(phi)
 z = R * np.cos(theta)
 ax.plot_wireframe(x, y, z, color='black', linewidth=0.25)
+'''
+
+# 구의 일부 그리기
+phi, theta = np.mgrid[0.0:np.pi:40j, 0.0:np.pi:20j]
+x = R * np.sin(theta) * np.cos(phi)
+y = R * np.sin(theta) * np.sin(phi)
+z = R * np.cos(theta)
+#ax.plot_surface(x, y, z, edgecolor='k', linewidth=0.2, linestyle=':', alpha=0.3)
+ax.plot_wireframe(x, y, z, color='k', linewidth=0.3, linestyle=':')
 
 # 창문 모서리 정의
 window_corners = np.array([
@@ -36,12 +42,11 @@ window_corners = np.array([
 positions = [
     np.array([0, 0, 0]),
     np.array([dx, 0, 0]),
-    #np.array([0, dy, 0]),
     #np.array([dx, dy, 0])
 ]
 
 # 각 위치에서 교점 계산 및 시선 표시
-colors = ['blue', 'green', 'orange', 'purple']
+colors = ['blue', 'red', 'orange', 'purple']
 intersection_points = []  # 교점 좌표 저장 리스트
 
 for position, color in zip(positions, colors):
@@ -75,17 +80,15 @@ for position, color in zip(positions, colors):
 corners = np.array([
     [half_size, half_size, half_size],
     [half_size, half_size, -half_size],
-    #[half_size, -half_size, half_size],
-    #[half_size, -half_size, -half_size],
     [-half_size, half_size, half_size],
-    [-half_size, half_size, -half_size],
-    #[-half_size, -half_size, half_size],
-    #[-half_size, -half_size, -half_size]
+    [-half_size, half_size, -half_size]
 ])
 for start in corners:
     for end in corners:
         if np.linalg.norm(start-end) == box_size:
-            ax.plot([start[0], end[0]], [start[1], end[1]], [start[2], end[2]], 'r-', linewidth=1)
+            ax.plot([start[0], end[0]], [start[1], end[1]], [start[2], end[2]], 'g-', linewidth=1)
+
+ax.set_box_aspect([1, 1, 1])
 
 ax.set_xlim([-R, R])
 ax.set_ylim([-R, R])
@@ -99,4 +102,3 @@ plt.show()
 # 교점 좌표 출력
 for i, point in enumerate(intersection_points):
     print(f"Intersection {i}: {point}")
-
