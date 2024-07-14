@@ -46,12 +46,13 @@ while True:
         eye_center = detector.get_eye_center(right_eye_points, left_eye_points)
         dx = calculate_dx(eye_center, image.shape[1])
         
-        center_point = np.array([0.51 - dx, 0.5])
+        center_point = np.array([0.5 - dx, 0.5])
         frame_nfov = nfov.toNFOV(frame, center_point)
     else:
-        frame_nfov = nfov.toNFOV(frame, np.array([0.51, 0.5]))
+        frame_nfov = nfov.toNFOV(frame, np.array([0.5, 0.5]))
 
-    frame_nfov = crop_center(frame_nfov)
+    #이미지의 중앙부만 크롭
+    #frame_nfov = crop_center(frame_nfov)
 
     cv2.imshow('360 View', frame_nfov)
 
