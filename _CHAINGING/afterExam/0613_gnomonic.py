@@ -11,14 +11,6 @@ import math
 from faceLandmark import FaceLandmarkDetector
 from usaFoV import USAFoV
 
-
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\0604_black_win.mp4'
-cap = cv2.VideoCapture(0) 
-video = cv2.VideoCapture(video_path) 
-
-nfov = USAFoV(height=800, width=1600)
-detector = FaceLandmarkDetector()
-
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 box_size = 300
@@ -28,16 +20,26 @@ distance_R = 100
 base_distance_cm = 30
 base_width_px = 200
 
-# 웹캠 좌표 (디스플레이 좌표계 기준)
+# 웹캠 좌표 (display frame)
 webcam_position = np.array([0, half_size, 0])
 
-# 웹캠 기준 디스플레이 모서리 좌표
+# 디스플레이 꼭짓점 좌표 (display frame)
 display_corners = np.array([
     [half_size, half_size, half_size],
     [-half_size, half_size, half_size],
     [half_size, half_size, -half_size],
     [-half_size, half_size, -half_size]
 ])
+
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\0604_black_win.mp4'
+cap = cv2.VideoCapture(0) 
+video = cv2.VideoCapture(video_path) 
+
+nfov = USAFoV(height=800, width=1600, webcam_position=webcam_position, display_corners=display_corners)
+detector = FaceLandmarkDetector()
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -55,14 +57,11 @@ while True:
     results, image = detector.process_frame(image)
 
     right_eye_points, left_eye_points = detector.draw_landmarks(image, results)
-
     if right_eye_points and left_eye_points:
         eye_center = detector.get_eye_center(right_eye_points, left_eye_points)
-        user_position = 
-        
-        frame_nfov = nfov.toNFOV(frame, user_position, window_corners)
+        frame_nfov = nfov.toNFOV(frame, eye_center)
     else:
-        frame_nfov = nfov.toNFOV(frame, np.array([0.5, 0.5]))
+        frame_nfov = nfov.toNFOV(frame, eye_center)
 
     cv2.imshow('360 View', frame_nfov)
 
