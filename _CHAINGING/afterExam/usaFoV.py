@@ -1,8 +1,7 @@
 import numpy as np
 from math import pi, tan
 import cv2
-from scipy.spatial import KDTree
-import time
+from time import time
 
 class USAFoV():
     def __init__(self, display_shape, webcam_position, display_corners):
@@ -23,7 +22,7 @@ class USAFoV():
     '''디스플레이 중앙 원점 - 사용자의 위치 계산'''
     def _calculate_position(self, eye_center, ry, webcam_theta, webcam_alpha):
         D_user_position = (
-            (2 * (eye_center[0]+ self.image_width/2) * ry * np.tan(webcam_theta/2)) / self.display_width,  
+            (2 * (eye_center[0] + self.image_width/2) * ry * np.tan(webcam_theta/2)) / self.display_width,  
             ry,
             (2 * (eye_center[1] + self.image_height/2)* ry * np.tan(webcam_alpha/2)) / self.display_height
         )
@@ -95,6 +94,8 @@ class USAFoV():
 
     '''USAFoV 추출'''
     def toUSAFoV(self, frame, image_shape, eye_center, ry):
+        print("p")
+        st = time()
         print("a")
         self.image_height = image_shape[0]
         self.image_width = image_shape[1]
@@ -102,17 +103,24 @@ class USAFoV():
         D_user_position = self._calculate_position(eye_center, ry, self.PI_2, self.PI*8/9)
         U_display_corners = self._calculate_corners(D_user_position)
 
-        print("b")
         display_theta, display_phi = self._convert_to_spherical(U_display_corners)
+        
+        print("b", display_theta.shape, display_phi.shape)
 
         #frame_theta, frame_phi = self._get_frame_grid(frame)
         print("c",  frame.shape[0],  frame.shape[1])
-        map_x = ((display_phi + self.PI) / (2 * self.PI)) * frame.shape[1]
-        map_y = ((display_theta + self.PI_2) / (self.PI)) * frame.shape[0]
+        
+        map_i = (((self.PI_2 - display_phi) / (self.PI)) * frame.shape[0]).T
+        map_j = (((self.PI - display_theta) / (2 * self.PI)) * frame.shape[1]).T
 
 
-        print("d", map_x.shape, map_y.shape)
-        result_image = cv2.remap(frame, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
+        print("d", map_i.shape, map_j.shape)
+        result_image = cv2.remap(frame, map_i.astype(np.float32), map_j.astype(np.float32), interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
 
         print("e")
+        ed = time()
+        
+        print(ed - st)
+
+
         return result_image

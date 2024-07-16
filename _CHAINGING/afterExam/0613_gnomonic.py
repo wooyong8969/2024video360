@@ -39,7 +39,7 @@ cap = cv2.VideoCapture(0)
 #640 470
 video = cv2.VideoCapture(video_path) 
 
-usafov = USAFoV(display_shape=[800,1600], webcam_position=webcam_position, display_corners=display_corners)
+usafov = USAFoV(display_shape=[400,800], webcam_position=webcam_position, display_corners=display_corners)
 detector = FaceLandmarkDetector()
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
