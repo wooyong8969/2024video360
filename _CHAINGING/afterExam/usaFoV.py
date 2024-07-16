@@ -1,35 +1,40 @@
-"""/**LatLong Image에서 사용자가 정의한 중심점을 기준으로 USAFoV 이미지 생성**/"""
-
-from cv2 import cv2
-from math import pi
 import numpy as np
+from math import pi, tan
+import cv2
+from scipy.spatial import KDTree
+import time
 
 class USAFoV():
-    def __init__(self, height, width, webcam_position, display_corners):
+    def __init__(self, display_shape, webcam_position, display_corners):
         self.PI = pi
         self.PI_2 = pi * 0.5
 
         self.frame = None
         self.display = None
-        self.display_height = height
-        self.display_width = width
+        self.display_height = display_shape[0]
+        self.display_width = display_shape[1]
+
+        self.image_height = None
+        self.image_width = None
 
         self.webcam_position = webcam_position
-        self.display_corners = display_corners
-
-        self.plane_coeffs = self._calculate_plane_equation(display_corners)
+        self.display_corners = np.array(display_corners)
 
     '''디스플레이 중앙 원점 - 사용자의 위치 계산'''
-    def _calculate_position(self, eye_center):
-        pass
-        #return D_user_position
+    def _calculate_position(self, eye_center, ry, webcam_theta, webcam_alpha):
+        D_user_position = (
+            (2 * (eye_center[0]+ self.image_width/2) * ry * np.tan(webcam_theta/2)) / self.display_width,  
+            ry,
+            (2 * (eye_center[1] + self.image_height/2)* ry * np.tan(webcam_alpha/2)) / self.display_height
+        )
+        return D_user_position
 
     '''사용자 원점 - 디스플레이의 네 모서리 좌표 계산'''
     def _calculate_corners(self, user_position):
         D_display_corners = self.display_corners
-        U_display_corners = ''''''
-        pass
-        #return U_display_corners
+        user_position = np.array(user_position)
+        U_display_corners = D_display_corners - user_position
+        return U_display_corners
 
     '''사용자 원점 - 디스플레이 평면의 방정식 계산'''
     def _calculate_plane_equation(self, display_corners):
@@ -41,13 +46,11 @@ class USAFoV():
         # Ax + By + Cz + D = 0
         A, B, C = n
         D = -np.dot(n, p1)
-
         return A, B, C, D
 
     '''사용자 원점 - 디스플레이 그리드 생성'''
     def _create_display_grid(self, U_display_corners):
-        # USER_display_corners 순서: [Top-Right, Top-Left, Bottom-Right, Bottom-Left]
-        A, B, C, D = self.plane_coeffs
+        A, B, C, D = self._calculate_plane_equation(self.display_corners)
 
         top_left = U_display_corners[1]
         bottom_right = U_display_corners[2]
@@ -75,38 +78,41 @@ class USAFoV():
         U_display_grid = self._create_display_grid(U_display_corners)
         xx, yy, zz = U_display_grid[..., 0], U_display_grid[..., 1], U_display_grid[..., 2]
 
-        r = np.sqrt(xx**2 + yy**2 + zz**2)
-        display_theta = np.arctan2(np.sqrt(xx**2 + yy**2), zz)
-        display_phi = np.arctan2(zz, xx)
+        display_theta = np.arctan2(yy, xx)
+        display_phi = np.arctan2(np.sqrt(xx**2 + yy**2), zz)
+
         return display_theta, display_phi
 
     '''frame 그리드 생성'''
     def _get_frame_grid(self, frame):
         frame_height, frame_width, _ = frame.shape
         xx, yy = np.meshgrid(np.linspace(-1, 1, frame_width), np.linspace(-1, 1, frame_height))
-        frame_theta = xx * self.PI
-        frame_phi = yy * self.PI_2
+
+        frame_theta = yy * self.PI_2    # 경도
+        frame_phi = xx * self.PI        # 위도
+
         return frame_theta, frame_phi
 
     '''USAFoV 추출'''
-    def toUSAFoV(self, frame, eye_center):
-        D_user_position = self._calculate_position(eye_center)
+    def toUSAFoV(self, frame, image_shape, eye_center, ry):
+        print("a")
+        self.image_height = image_shape[0]
+        self.image_width = image_shape[1]
+
+        D_user_position = self._calculate_position(eye_center, ry, self.PI_2, self.PI*8/9)
         U_display_corners = self._calculate_corners(D_user_position)
 
+        print("b")
         display_theta, display_phi = self._convert_to_spherical(U_display_corners)
-        frame_theta, frame_phi = self._get_frame_grid(frame)
 
-        result_image = np.zeros((self.display_height, self.display_width, 3), dtype=np.uint8)
-        for i in range(self.display_height):
-            for j in range(self.display_width):
-                index = np.argmin((frame_theta - display_theta[i, j])**2 + (frame_phi - display_phi[i, j])**2)
-                y, x = divmod(index, frame.shape[1])
-                result_image[i, j] = frame[y, x]
+        #frame_theta, frame_phi = self._get_frame_grid(frame)
+        print("c",  frame.shape[0],  frame.shape[1])
+        map_x = ((display_phi + self.PI) / (2 * self.PI)) * frame.shape[1]
+        map_y = ((display_theta + self.PI_2) / (self.PI)) * frame.shape[0]
 
+
+        print("d", map_x.shape, map_y.shape)
+        result_image = cv2.remap(frame, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
+
+        print("e")
         return result_image
-
-
-'''
-user_position을 키보드 이용하여 조정할 수 있게 구현.
-
-'''

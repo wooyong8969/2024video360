@@ -27,6 +27,8 @@ while True:
         print("웹캠 오류")
         break
 
+    #print(image.shape[0], image.shape[1])
+
     results, image = detector.process_frame(image)
     right_eye_points, left_eye_points = detector.draw_landmarks(image, results)
     if right_eye_points and left_eye_points:

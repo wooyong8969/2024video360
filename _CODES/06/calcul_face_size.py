@@ -79,6 +79,7 @@ while cap.isOpened():
         width, height = detector.get_face_size(min_x, min_y, max_x, max_y)
         print(f"Face width: {width}px, Face height: {height}px")
         cv2.rectangle(image, (min_x, min_y), (max_x, max_y), (0, 255, 0), 2)
+        print(min_x, min_y, "    ", max_x, max_y)
 
     # 결과 이미지 출력
     cv2.imshow('Face Landmarks', image)
