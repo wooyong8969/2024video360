@@ -60,7 +60,7 @@ class FaceLandmarkDetector:
 
 
 detector = FaceLandmarkDetector()
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(2)
 
 while cap.isOpened():
     success, frame = cap.read()

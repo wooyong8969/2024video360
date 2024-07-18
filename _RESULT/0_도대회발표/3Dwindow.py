@@ -6,7 +6,7 @@ def calculate_view_angle(position, corner):
     vector = corner - position
     return vector / np.linalg.norm(vector)
 
-R = 700
+R = 1000
 box_size = 300
 half_size = box_size / 2
 dx = 100

@@ -20,6 +20,7 @@ def calculate_dx(eye_center, frame_width):
 while True:
     ret, frame = video.read()
     if not ret:
+        print("영상 오류")
         break
 
     success, image = cap.read()
@@ -34,6 +35,10 @@ while True:
     if right_eye_points and left_eye_points:
         eye_center = detector.get_eye_center(right_eye_points, left_eye_points)
         dx = calculate_dx(eye_center, image.shape[1])
+
+        for point in right_eye_points + left_eye_points:
+            flipped_x = frame_nfov.shape[1] - int(point[0])
+            cv2.circle(frame_nfov, (flipped_x, int(point[1])), 2, (0, 255, 0), -1)
         
         # 원근 투영 변환을 위한 새로운 중심점 계산
         center_point = np.array([0.5 - dx, 0.5])
