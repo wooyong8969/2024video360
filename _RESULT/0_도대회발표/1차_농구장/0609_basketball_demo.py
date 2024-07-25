@@ -15,12 +15,11 @@ def calculate_dx(eye_center, frame_width):
     # 화면 중심과 눈 중심의 차이를 구해 dx로 사용
     screen_center = frame_width / 2
     dx = (screen_center - eye_center[0]) / frame_width
-    return dx / 5
+    return dx / 15
 
 while True:
     ret, frame = video.read()
     if not ret:
-        print("영상 오류")
         break
 
     success, image = cap.read()
@@ -28,17 +27,11 @@ while True:
         print("웹캠 오류")
         break
 
-    #print(image.shape[0], image.shape[1])
-
     results, image = detector.process_frame(image)
     right_eye_points, left_eye_points = detector.draw_landmarks(image, results)
     if right_eye_points and left_eye_points:
         eye_center = detector.get_eye_center(right_eye_points, left_eye_points)
         dx = calculate_dx(eye_center, image.shape[1])
-
-        for point in right_eye_points + left_eye_points:
-            flipped_x = frame_nfov.shape[1] - int(point[0])
-            cv2.circle(frame_nfov, (flipped_x, int(point[1])), 2, (0, 255, 0), -1)
         
         # 원근 투영 변환을 위한 새로운 중심점 계산
         center_point = np.array([0.5 - dx, 0.5])
@@ -46,7 +39,7 @@ while True:
     else:
         frame_nfov = nfov.toNFOV(frame, np.array([0.5, 0.5]))
 
-    #frame_nfov = cv2.resize(frame_nfov, (frame_nfov.shape[1] * 2, frame_nfov.shape[0] * 2), interpolation=cv2.INTER_LINEAR)
+    frame_nfov = cv2.resize(frame_nfov, (frame_nfov.shape[1] * 2, frame_nfov.shape[0] * 2), interpolation=cv2.INTER_LINEAR)
     cv2.imshow('360 View', frame_nfov)
 
     key = cv2.waitKey(1)

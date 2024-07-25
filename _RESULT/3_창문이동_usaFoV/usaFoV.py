@@ -23,19 +23,22 @@ class USAFoV():
     def _calculate_position(self, eye_center, ry, webcam_theta, webcam_alpha):
         D_user_position = (
           ry * ((((-2 * np.tan(webcam_theta/2) * eye_center[0]) / self.image_width) +  np.tan(webcam_theta/2))),  
-          -ry,
+            -ry,
           ry * (((-2 * np.tan(webcam_alpha/2) * eye_center[1]) / self.image_height) +  np.tan(webcam_alpha/2))
         )
+        print("D_user_position:", D_user_position)
         print("webcam theta, alpha", webcam_theta, webcam_alpha)
-        
         return D_user_position
 
     '''사용자 원점 - 디스플레이의 네 모서리 좌표 계산'''
     def _calculate_corners(self, user_position):
         D_display_corners = self.display_corners
         user_position = np.array(user_position)
+        print("user_position", user_position)
         U_display_corners = D_display_corners - user_position
-
+        print("U_display_corners")
+        print(U_display_corners)
+        print("---------------")
         return U_display_corners
 
     '''사용자 원점 - 디스플레이 그리드 생성'''
@@ -60,9 +63,12 @@ class USAFoV():
         U_display_grid[..., 0] = x_grid
         U_display_grid[..., 1] = y_grid
         U_display_grid[..., 2] = z_grid
-
+        print("x_grid", x_grid)
+        print("y_grid", y_grid)
+        print("z_grid", z_grid)
         return U_display_grid
     
+
     '''사용자 원점 - 디스플레이 그리드의 직각좌표를 구면 좌표로 변환'''
     def _convert_to_spherical(self, U_display_corners):
         U_display_grid = self._create_display_grid(U_display_corners)
@@ -70,39 +76,49 @@ class USAFoV():
 
         display_theta = np.arctan2(xx, yy)
         display_phi = np.arctan2(zz, np.sqrt(xx**2 + yy**2))
-    
+        print("bbb", display_theta.shape, display_phi.shape)
+
         return display_theta, display_phi
-    
+
+    '''frame 그리드 생성
+    def _get_frame_grid(self, frame):
+        frame_height, frame_width, _ = frame.shape
+        xx, zz = np.meshgrid(np.linspace(-1, 1, frame_width), np.linspace(-1, 1, frame_height))
+
+        frame_phi = zz * self.PI_2    # 경도
+        frame_theta = xx * self.PI        # 위도
+
+        return frame_theta, frame_phi'''
+
     '''USAFoV 추출'''
     def toUSAFoV(self, frame, image_shape, eye_center, ry):
+        st = time()
+        
         self.image_height = image_shape[0]
         self.image_width = image_shape[1]
         self.frame_height = frame.shape[0]
         self.frame_width = frame.shape[1]
-
         print("image height, width", image_shape[0], image_shape[1])
         print("frame height, width", self.frame_height, self.frame_width)
-        print("---------------------------------------------------------")
-
         D_user_position = self._calculate_position(eye_center, ry, self.PI_2, self.PI_2/640*480)
-        print("D_user_position:", D_user_position)
-        print("---------------------------------------------------------")
-        
         U_display_corners = self._calculate_corners(D_user_position)
-        print("U_display_corners")
-        print(U_display_corners)
-        print("---------------------------------------------------------")
-        
+
         display_theta, display_phi = self._convert_to_spherical(U_display_corners)
 
         print("theta")
         print(display_theta)
-        print("---------------------------------------------------------")
 
         print("phi")
         print(display_phi)
-        print("---------------------------------------------------------")
 
         result_image = cv2.remap(frame, (((self.PI + display_theta) / self.PI/2) * self.frame_width).astype(np.float32), ((self.PI_2 - display_phi / self.PI_2/2) * self.frame_height).astype(np.float32), interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
+        #result_image = cv2.remap(frame, ((display_theta / self.PI/2) * self.frame_width).astype(np.float32), ((display_phi / self.PI_2/2) *6* self.frame_height).astype(np.float32), interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
+       
+        print("e")
+        print
+        ed = time()
+        
+        print(ed - st)
+
 
         return result_image

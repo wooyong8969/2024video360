@@ -30,7 +30,7 @@ def crop_center(image, scale=3):
 loop_counter = 0
 start_time = time.time()
 
-while True:
+while time.time() - start_time < 5:  # 1초 동안 실행
     ret, frame = video.read()
     if not ret:
         break
@@ -46,19 +46,15 @@ while True:
         eye_center = detector.get_eye_center(right_eye_points, left_eye_points)
         dx = calculate_dx(eye_center, image.shape[1])
         
-        for point in right_eye_points + left_eye_points:
-            flipped_x = frame_nfov.shape[1] - int(point[0])
-            cv2.circle(frame_nfov, (flipped_x, int(point[1])), 2, (0, 255, 0), -1)
-        
-        center_point = np.array([0.5 - dx, 0.5])
+        center_point = np.array([0.51 - dx, 0.5])
         frame_nfov = nfov.toNFOV(frame, center_point)
     else:
-        frame_nfov = nfov.toNFOV(frame, np.array([0.5, 0.5]))
+        frame_nfov = nfov.toNFOV(frame, np.array([0.51, 0.5]))
 
-    #이미지의 중앙부만 크롭
-    #frame_nfov = crop_center(frame_nfov)
+    frame_nfov = crop_center(frame_nfov)
 
     cv2.imshow('360 View', frame_nfov)
+    loop_counter += 1
 
     key = cv2.waitKey(1)
     if key == ord('q'):
@@ -67,3 +63,5 @@ while True:
 cap.release()
 video.release()
 cv2.destroyAllWindows()
+
+print(f" {loop_counter}")

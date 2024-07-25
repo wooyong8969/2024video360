@@ -12,7 +12,7 @@ import numpy as np
 
 # NFOV 클래스를 정의
 class NFOV():
-    def __init__(self, height, width):
+    def __init__(self, height=400, width=800):
         # FOV(Field Of View)의 기본값[90°, 45°]으로 설정
         self.FOV = [0.5, 0.5]
         # 앞으로 사용할 값 정의
@@ -42,10 +42,10 @@ class NFOV():
     def _get_screen_img(self):
         # 화면 크기에 맞게 NFOV 이미지 구성 시 기준이 될 점들의 그리드를 생성
         xx, yy = np.meshgrid(np.linspace(0, 1, self.width), np.linspace(0, 1, self.height))  # 너비와 높이에 따른 2차원 배열 생성
-        return np.array([xx.ravel(), yy.ravel()]).T
+        return np.array([xx.ravel(), yy.ravel()]).T  # 1차원 배열로 변환하여 반환
 
     def _calcSphericaltoGnomonic(self, convertedScreenCoord):
-        # 구면 좌표를 그노모닉 좌표로 변환
+        # 구면 좌표를 그노모닉(직각) 좌표로 변환
         # 360도 이미지의 특정 영역을 일반적인 2D 이미지로 투영하는 데 사용
         # 결과적으로 위도와 경도를 나타내는 값이 반환됨
 
@@ -75,7 +75,6 @@ class NFOV():
         self.frame_height = frame.shape[0]
         self.frame_width = frame.shape[1]
         self.frame_channel = frame.shape[2]
-
         # 중심점을 라디안 단위로 변환하여 저장 -> NFOV 이미지 중심점 정하는 데 사용
         self.cp = self._get_coord_rad_point(point=center_point)
 

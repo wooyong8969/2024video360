@@ -1,7 +1,7 @@
-'''/**얼굴 landmark 탐지 클래스 정의**/'''
-import cv2  # OpenCV, 컴퓨터 비전 처리를 위한 라이브러리
-import mediapipe as mp  # MediaPipe, 구글에서 개발한 멀티모달 AI 솔루션 라이브러리
-import numpy as np  # NumPy, 수치 계산을 위한 라이브러리
+"""/**얼굴 landmark 탐지**/"""
+import cv2
+import mediapipe as mp 
+import numpy as np 
 
 class FaceLandmarkDetector:
     def __init__(self):
@@ -21,19 +21,19 @@ class FaceLandmarkDetector:
         # 제 3자의 입장에서, 9시 방향부터 시계방향으로 / -3, -2, -1은 눈동자 좌표
         self.RIGHT_EYE_INDEX = [362, 398, 384, 385, 386, 387, 388, 466, 263, 249, 390, 373, 374, 380, 381, 382, 476, 473, 474]
         self.LEFT_EYE_INDEX = [33, 246, 161, 160, 159, 158, 157, 173, 133, 155, 154, 153, 145, 144, 163, 7, 471, 468, 469]
-
+   
     '''이미지 처리'''
     def process_frame(self, image):
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # 이미지를 BGR에서 RGB로 변환
         results = self.face_mesh.process(image_rgb)  # 얼굴 메시 처리 수행
         image_bgr = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)  # 결과 이미지를 다시 BGR로 변환
         return results, image_bgr
-
+   
     '''landmark 그리기'''
     def draw_landmarks(self, image, results):
         right_eye_points = []
         left_eye_points = []  # 각 landmark의 좌표를 저장할 리스트 생성
-
+        print("right_eye_points")
         if results.multi_face_landmarks:  # 탐지된 얼굴 landmark가 있으면
             for face_landmarks in results.multi_face_landmarks:
                 # 오른쪽 눈 landmark 표시
@@ -54,10 +54,10 @@ class FaceLandmarkDetector:
                     connections=self.mp_face_mesh.FACEMESH_CONTOURS,
                     landmark_drawing_spec=self.drawing_spec,  # 이미 정의된 스타일로 landmark 그리기
                     connection_drawing_spec=self.drawing_spec) # 이미 정의된 스타일로 edges 그리기
-
+                
         return right_eye_points, left_eye_points
     
-    '''#눈의 중앙 좌표 구하기'''
+    '''눈의 중앙 좌표 구하기'''
     def get_eye_center(self, right_eye_points, left_eye_points):
         # 각 눈 관련 좌표들의 평균값을 눈의 중앙 좌표라 가정
         right_eye_center = np.mean(right_eye_points, axis=0)
@@ -65,21 +65,19 @@ class FaceLandmarkDetector:
         
         eye_center = (right_eye_center + left_eye_center) / 2  # 두 눈의 좌표의 중앙 구하기
         return eye_center
+   
     
-
-    '''얼굴의 경계 좌표 구하기'''
-    def get_face_bounds(self, results, image_shape):
+    '''얼굴의 경계 좌표 및 크기 구하기'''
+    def get_face_size(self, results, image_shape):
         if results.multi_face_landmarks:
             for face_landmarks in results.multi_face_landmarks:
                 xs = [landmark.x * image_shape[1] for landmark in face_landmarks.landmark]
                 ys = [landmark.y * image_shape[0] for landmark in face_landmarks.landmark]
                 min_x, max_x = int(min(xs)), int(max(xs))
                 min_y, max_y = int(min(ys)), int(max(ys))
-                return min_x, min_y, max_x, max_y
-        return None
-
-    '''얼굴 크기 구하기'''
-    def get_face_size(self, min_x, min_y, max_x, max_y):
-        width = max_x - min_x
-        height = max_y - min_y
-        return width, height
+                width = max_x - min_x
+                height = max_y - min_y
+                return (min_x, min_y, max_x, max_y), (width, height)
+        return None, None
+    
+    
