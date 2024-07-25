@@ -34,6 +34,7 @@ display_corners = np.array([
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정): "))
 
 video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\0604_black_win.mp4'
 cap = cv2.VideoCapture(0)
@@ -45,9 +46,6 @@ usafov = USAFoV(display_shape=[800,1600], webcam_position=webcam_position, displ
 detector = FaceLandmarkDetector()
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-state = input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정): ")
 
 while True:
     st = time()
@@ -79,7 +77,7 @@ while True:
         frame_usafov = usafov.toUSAFoV(frame, image.shape, eye_center, ry, state)
         print("main 3. frame 생성")
         ed = time()
-        print(ed - st)
+        print("frame 생성 소요 시간:", ed - st)
     else:
         frame_usafov = usafov.toUSAFoV(frame, image.shape, [320, 240], ry, state)
 

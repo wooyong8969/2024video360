@@ -24,7 +24,7 @@ class USAFoV():
         self.display_corners = np.array(display_corners)
 
     '''디스플레이 좌표계 - 사용자의 위치 계산'''
-    def _calculate_display_frame_position(self, eye_center, ry, webcam_theta, webcam_alpha):
+    def _calculate_df_position(self, eye_center, ry, webcam_theta, webcam_alpha):
         D_user_position = (
           ry * ((((-2 * np.tan(webcam_theta/2) * eye_center[0]) / self.image_width) +  np.tan(webcam_theta/2))),  
           -ry,
@@ -35,19 +35,19 @@ class USAFoV():
         return D_user_position
 
     '''사용자 좌표계 - 디스플레이의 네 모서리 좌표 계산'''
-    def _calculate_corners(self, user_position):
+    def _calculate_uf_corners(self, user_position):
         D_display_corners = self.display_corners
         user_position = np.array(user_position)
         U_display_corners = D_display_corners - user_position
 
         return U_display_corners
 
-    '''사용자 좌표계 - 디스플레이 그리드 생성'''
-    def _create_display_grid(self, U_display_corners):
+    '''디스플레이 그리드 생성'''
+    def _create_display_grid(self, display_corners):
         #A, B, C, D = self._calculate_plane_equation(self.display_corners)
 
-        top_left = U_display_corners[0]
-        bottom_right = U_display_corners[3]
+        top_left = display_corners[0]
+        bottom_right = display_corners[3]
 
         x1, y, z1 = top_left
         x2, _, z2 = bottom_right
@@ -67,9 +67,9 @@ class USAFoV():
 
         return U_display_grid
     
-    '''사용자 좌표계 - 디스플레이 그리드의 직각좌표를 구면 좌표로 변환'''
-    def _convert_to_spherical(self, U_display_grid):
-        xx, yy, zz = U_display_grid[..., 0], U_display_grid[..., 1], U_display_grid[..., 2]
+    '''직각좌표를 구면 좌표로 변환'''
+    def _convert_to_spherical(self, display_grid):
+        xx, yy, zz = display_grid[..., 0], display_grid[..., 1], display_grid[..., 2]
 
         display_theta = np.arctan2(xx, yy)
         display_phi = np.arctan2(zz, np.sqrt(xx**2 + yy**2))
@@ -77,14 +77,36 @@ class USAFoV():
         return display_theta, display_phi
     
     '''영상 좌표계 - 사용자의 위치 계산'''
-    def _calculate_video_frame_position(self, user_position):
-        # 영상 좌플레이에서 디스플레이까지의 y축 거리 (display_distance)를 활용
+    def _calculate_vf_position(self, user_position):
         V_user_position = np.array([
             user_position[0],
-            user_position[1] + self.display_distance,  # y축으로 display_distance만큼 이동
+            user_position[1] + self.display_distance,
             user_position[2]
         ])
+
         return V_user_position
+    
+    '''영상 좌표계 - 직선과 구의 교점 계산'''
+    def _calculate_vf_sphere_intersections(self, V_display_grid, V_user_position):
+        intersections = []
+
+        for point in V_display_grid.reshape(-1, 3):
+            direction = point - V_user_position
+            a = np.dot(direction, direction)
+            b = 2 * np.dot(V_user_position, direction)
+            c = np.dot(V_user_position, V_user_position) - self.sphere_radius**2
+
+            discriminant = b**2 - 4 * a * c
+            if discriminant >= 0:
+                t1 = (-b + np.sqrt(discriminant)) / (2 * a)
+                t2 = (-b - np.sqrt(discriminant)) / (2 * a)
+                
+                # 디스플레이 쪽 벡터의 교점 선택
+                t = t1 if 0 < t1 < t2 else t2
+                intersection_point = V_user_position + t * direction
+                intersections.append(intersection_point)
+
+        return np.array(intersections)
     
     '''USAFoV 추출'''
     def toUSAFoV(self, frame, image_shape, eye_center, ry, state):
@@ -97,36 +119,48 @@ class USAFoV():
         print("frame height, width", self.frame_height, self.frame_width)
         print("---------------------------------------------------------")
 
-        D_user_position = self._calculate_display_frame_position(eye_center, ry, self.PI_2, self.PI_2/640*480)
+        D_user_position = self._calculate_df_position(eye_center, ry, self.PI_2, self.PI_2/640*480)
         print("D_user_position:", D_user_position)
         print("---------------------------------------------------------")
 
 
-        if state == 1:  # 사용자 고정 모드
-            U_display_corners = self._calculate_corners(D_user_position)
+        if state == 1:      # /**사용자 고정 모드**/
+            U_display_corners = self._calculate_uf_corners(D_user_position) # 디스플레이 위치 재계산
             print("U_display_corners")
             print(U_display_corners)
             print("---------------------------------------------------------")
             
             U_display_grid = self._create_display_grid(U_display_corners)
-            display_theta, display_phi = self._convert_to_spherical(U_display_grid)
+            display_grid = U_display_grid
 
-            print("theta")
-            print(display_theta)
-            print("---------------------------------------------------------")
 
-            print("phi")
-            print(display_phi)
-            print("---------------------------------------------------------")
-
-            result_image = cv2.remap(frame, (((self.PI + display_theta) / self.PI/2) * self.frame_width).astype(np.float32), ((self.PI_2 - display_phi / self.PI_2/2) * self.frame_height).astype(np.float32), interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
-
-            return result_image
-        
-
-        else:           # 디스플레이 고정 모드
-            V_user_position = self._calculate_video_frame_position(D_user_position)
+        elif state == 2:    # /**디스플레이 고정 모드**/
+            V_user_position = self._calculate_vf_position(D_user_position)  # 사용자 위치 재계산
             print("V_user_position:", V_user_position)
             print("---------------------------------------------------------")
+
+            V_display_grid = self._create_display_grid(self.display_corners)
+            V_view_grid = self._calculate_vf_sphere_intersections(V_display_grid, V_user_position)
+            display_grid = V_view_grid
+            
+
+        else:               # /**예외처리**/
+            print("state 오류. state:", state)
+
+        display_theta, display_phi =  self._convert_to_spherical(display_grid)
+
+        print("theta")
+        print(display_theta)
+        print("---------------------------------------------------------")
+
+        print("phi")
+        print(display_phi)
+        print("---------------------------------------------------------")
+        result_image = cv2.remap(frame, (((self.PI + display_theta) / self.PI/2) * self.frame_width).astype(np.float32), ((self.PI_2 - display_phi / self.PI_2/2) * self.frame_height).astype(np.float32), interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
+
+        return result_image
+
+
+
         
         
