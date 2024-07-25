@@ -16,11 +16,11 @@ half_size = box_size / 2
 base_distance_cm = 100
 base_width_px = 80 # 1m 떨어진 얼굴 폭의 픽셀
 
-# 웹캠 좌표 (display frame)
-
-
 monitor_width = 35
 monitor_height = 23.5
+
+display_distance = 50  # video frame 원점에서 display frame 원점까지의 거리
+sphere_radius = 1000
 
 webcam_position = np.array([0, 0, monitor_height / 2])
 
@@ -40,12 +40,14 @@ cap = cv2.VideoCapture(0)
 #640 480
 video = cv2.VideoCapture(video_path) 
 
-usafov = USAFoV(display_shape=[800,1600], webcam_position=webcam_position, display_corners=display_corners)
+usafov = USAFoV(display_shape=[800,1600], webcam_position=webcam_position, display_corners=display_corners, display_distance=display_distance, sphere_radius=sphere_radius)
 
 detector = FaceLandmarkDetector()
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+state = input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정): ")
 
 while True:
     st = time()
@@ -74,12 +76,12 @@ while True:
         ry = (base_distance_cm * base_width_px) / face_width  # 모니터와 사람 사이의 거리 (cm단위)
         print("main 2. 모니터-사용자 거리 계산", ry)
         
-        frame_usafov = usafov.toUSAFoV(frame, image.shape, eye_center, ry)
+        frame_usafov = usafov.toUSAFoV(frame, image.shape, eye_center, ry, state)
         print("main 3. frame 생성")
         ed = time()
         print(ed - st)
     else:
-        frame_usafov = usafov.toUSAFoV(frame, image.shape, [320, 240], ry)
+        frame_usafov = usafov.toUSAFoV(frame, image.shape, [320, 240], ry, state)
 
     cv2.imshow('360 View', frame_usafov)
 
