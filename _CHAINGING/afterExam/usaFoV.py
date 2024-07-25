@@ -86,6 +86,13 @@ class USAFoV():
 
         return V_user_position
     
+    '''영상 좌표계 - 디스플레이의 네 모서리 좌표 계산'''
+    def _calculate_vf_corners(self, display_corners):
+        V__display_corners = display_corners.copy()
+        V__display_corners[:, 1] += self.display_distance
+
+        return V__display_corners
+    
     '''영상 좌표계 - 직선과 구의 교점 계산'''
     def _calculate_vf_sphere_intersections(self, V_display_grid, V_user_position):
         intersections = []
@@ -102,12 +109,16 @@ class USAFoV():
                 t2 = (-b - np.sqrt(discriminant)) / (2 * a)
                 
                 # 디스플레이 쪽 벡터의 교점 선택
-                t = t1 if 0 < t1 < t2 else t2
-                intersection_point = V_user_position + t * direction
-                intersections.append(intersection_point)
-        intersections_array  = np.array(intersections)
+                t = t1 if t1 > 0 else t2  # 둘 중 양수인 값 선택
+
+                if t > 0:
+                    intersection_point = V_user_position + t * direction
+                    intersections.append(intersection_point)
+
+        intersections_array = np.array(intersections)
         intersections_array = intersections_array.reshape(V_display_grid.shape)
         return intersections_array
+
     
     '''USAFoV 추출'''
     def toUSAFoV(self, frame, image_shape, eye_center, ry, state):
@@ -140,11 +151,12 @@ class USAFoV():
             print("V_user_position:", V_user_position)
             print("---------------------------------------------------------")
 
+            V_display_corners = self._calculate_vf_corners(self.display_corners)
             print("display_corners")
             print(self.display_corners)
             print("---------------------------------------------------------")
 
-            V_display_grid = self._create_display_grid(self.display_corners)
+            V_display_grid = self._create_display_grid(V_display_corners)
             print("V_display_grid")
             print(V_display_grid)
             print("---------------------------------------------------------")
