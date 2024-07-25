@@ -90,7 +90,7 @@ class USAFoV():
     def _calculate_vf_sphere_intersections(self, V_display_grid, V_user_position):
         intersections = []
 
-        for point in V_display_grid.reshape(-1, 3):
+        for point in V_display_grid.reshape(-1, 3): # 320000개의 행, 3개의 열(x, y, z)
             direction = point - V_user_position
             a = np.dot(direction, direction)
             b = 2 * np.dot(V_user_position, direction)
@@ -131,7 +131,21 @@ class USAFoV():
             print("---------------------------------------------------------")
             
             U_display_grid = self._create_display_grid(U_display_corners)
-            display_grid = U_display_grid
+            print("U_display_grid")
+            print(U_display_grid)
+            print("---------------------------------------------------------")
+
+            display_theta, display_phi =  self._convert_to_spherical(U_display_grid)
+
+            print("theta")
+            print(display_theta)
+            print("---------------------------------------------------------")
+
+            print("phi")
+            print(display_phi)
+            print("---------------------------------------------------------")
+
+            result_image = cv2.remap(frame, (((self.PI + display_theta) / self.PI/2) * self.frame_width).astype(np.float32), ((self.PI_2 - display_phi / self.PI_2/2) * self.frame_height).astype(np.float32), interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
 
 
         elif state == 2:    # /**디스플레이 고정 모드**/
@@ -139,24 +153,40 @@ class USAFoV():
             print("V_user_position:", V_user_position)
             print("---------------------------------------------------------")
 
+            print("display_corners")
+            print(self.display_corners)
+            print("---------------------------------------------------------")
+
             V_display_grid = self._create_display_grid(self.display_corners)
+            print("V_display_grid")
+            print(V_display_grid)
+            print("---------------------------------------------------------")
+
             V_view_grid = self._calculate_vf_sphere_intersections(V_display_grid, V_user_position)
-            display_grid = V_view_grid
+            print("V_view_grid")
+            print(V_view_grid)
+            print("---------------------------------------------------------")
             
+            display_theta, display_phi =  self._convert_to_spherical(V_view_grid)
+
+            print("theta")
+            print(display_theta)
+            print("---------------------------------------------------------")
+
+            print("phi")
+            print(display_phi)
+            print("---------------------------------------------------------")
+
+
+            # theta를 [0, frame_width] 범위로, phi를 [0, frame_height] 범위로 매핑
+            x_mapped = ((display_theta + self.PI) / (2 * self.PI) * self.frame_width).astype(np.float32)
+            y_mapped = ((self.PI_2 - display_phi) / self.PI * self.frame_height).astype(np.float32)
+            result_image = cv2.remap(frame, x_mapped, y_mapped, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
+
 
         else:               # /**예외처리**/
             print("state 오류. state:", state)
-
-        display_theta, display_phi =  self._convert_to_spherical(display_grid)
-
-        print("theta")
-        print(display_theta)
-        print("---------------------------------------------------------")
-
-        print("phi")
-        print(display_phi)
-        print("---------------------------------------------------------")
-        result_image = cv2.remap(frame, (((self.PI + display_theta) / self.PI/2) * self.frame_width).astype(np.float32), ((self.PI_2 - display_phi / self.PI_2/2) * self.frame_height).astype(np.float32), interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
+        
 
         return result_image
 
