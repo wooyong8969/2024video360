@@ -95,29 +95,24 @@ class USAFoV():
     
     '''영상 좌표계 - 직선과 구의 교점 계산'''
     def _calculate_vf_sphere_intersections(self, V_display_grid, V_user_position):
-        intersections = []
+        direction = V_display_grid - V_user_position
+    
+        a = np.einsum('ijk,ijk->ij', direction, direction)
+        b = 2 * np.einsum('ijk,k->ij', direction, V_user_position)
+        c = np.dot(V_user_position, V_user_position) - self.sphere_radius**2
 
-        for point in V_display_grid.reshape(-1, 3): # 320000개의 행, 3개의 열(x, y, z)
-            direction = point - V_user_position
-            a = np.dot(direction, direction)
-            b = 2 * np.dot(V_user_position, direction)
-            c = np.dot(V_user_position, V_user_position) - self.sphere_radius**2
+        discriminant = b**2 - 4 * a * c
 
-            discriminant = b**2 - 4 * a * c
-            if discriminant >= 0:
-                t1 = (-b + np.sqrt(discriminant)) / (2 * a)
-                t2 = (-b - np.sqrt(discriminant)) / (2 * a)
-                
-                # 디스플레이 쪽 벡터의 교점 선택
-                t = t1 if t1 > 0 else t2  # 둘 중 양수인 값 선택
-
-                if t > 0:
-                    intersection_point = V_user_position + t * direction
-                    intersections.append(intersection_point)
-
-        intersections_array = np.array(intersections)
-        intersections_array = intersections_array.reshape(V_display_grid.shape)
-        return intersections_array
+        sqrt_discriminant = np.sqrt(discriminant)
+        t1 = (-b + sqrt_discriminant) / (2 * a)
+        t2 = (-b - sqrt_discriminant) / (2 * a)
+        
+        t = np.where(t1 > 0, t1, t2)
+        t = np.where(t > 0, t, np.nan)
+        
+        intersection_points = V_user_position + t[..., np.newaxis] * direction
+        
+        return intersection_points
 
     
     '''USAFoV 추출'''
