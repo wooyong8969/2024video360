@@ -5,10 +5,6 @@ from time import time
 
 class USAFoV():
     def __init__(self, display_shape, webcam_position, display_corners, display_distance, sphere_radius):
-        '''
-        webcam_position, display_corners 모두 video frame
-        display_distances는 video frame 원점에서 display frame 원점까지의 거리
-        '''
         self.PI = pi
         self.PI_2 = pi * 0.5
 
@@ -135,7 +131,6 @@ class USAFoV():
         print("D_user_position:", D_user_position)
         print("---------------------------------------------------------")
 
-
         if state == 1:      # /**사용자 고정 모드**/
             U_display_corners = self._calculate_uf_corners(D_user_position) # 디스플레이 위치 재계산
             print("U_display_corners")
@@ -145,7 +140,6 @@ class USAFoV():
             U_display_grid = self._create_display_grid(U_display_corners)
             display_grid = U_display_grid
 
-            
         elif state == 2:    # /**디스플레이 고정 모드**/
             V_user_position = self._calculate_vf_position(D_user_position)  # 사용자 위치 재계산
             print("V_user_position:", V_user_position)
@@ -158,7 +152,6 @@ class USAFoV():
 
             V_view_grid = self._calculate_vf_sphere_intersections(V_display_grid, V_user_position)
             display_grid = V_view_grid
-
 
         else:               # /**예외처리**/
             print("state 오류. state:", state)

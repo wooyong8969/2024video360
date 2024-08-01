@@ -5,8 +5,8 @@ import numpy as np
 import math
 from faceLandmark import FaceLandmarkDetector
 from usaFoV import USAFoV
-from screeninfo import get_monitors
 from time import time
+from scipy.signal import butter, lfilter
 
 '''사용자 정의값들'''
 
@@ -22,9 +22,10 @@ monitor_height = 23.5
 display_distance = 50  # video frame 원점에서 display frame 원점까지의 거리
 sphere_radius = 1000
 
+# 웹캠 좌표 (video frame)
 webcam_position = np.array([0, 50, monitor_height / 2])
 
-# 디스플레이 꼭짓점 좌표 (display frame)
+# 디스플레이 꼭짓점 좌표 (video frame)
 display_corners = np.array([
     [-monitor_width / 2, 50, monitor_height / 2],
     [monitor_width / 2, 50, monitor_height / 2],
@@ -32,14 +33,14 @@ display_corners = np.array([
     [monitor_width / 2, 50, -monitor_height / 2]
 ])
 
-#theta = np.radians(20)
-#rotation_matrix_z = np.array([
-#    [np.cos(theta), -np.sin(theta), 0],
-#    [np.sin(theta), np.cos(theta), 0],
-#    [0, 0, 1]
-#])
-#display_corners = np.dot(display_corners, rotation_matrix_z.T)
-
+# 회전한 디스플레이 꼭짓점 좌표 (video frame)
+theta = np.radians(45)
+rotation_matrix_z = np.array([
+    [np.cos(theta), -np.sin(theta), 0],
+    [np.sin(theta), np.cos(theta), 0],
+    [0, 0, 1]
+])
+display_corners = np.dot(display_corners, rotation_matrix_z.T)
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
