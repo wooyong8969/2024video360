@@ -32,13 +32,13 @@ display_corners = np.array([
     [monitor_width / 2, 50, -monitor_height / 2]
 ])
 
-theta = np.radians(20)
-rotation_matrix_z = np.array([
-    [np.cos(theta), -np.sin(theta), 0],
-    [np.sin(theta), np.cos(theta), 0],
-    [0, 0, 1]
-])
-display_corners = np.dot(display_corners, rotation_matrix_z.T)
+#theta = np.radians(20)
+#rotation_matrix_z = np.array([
+#    [np.cos(theta), -np.sin(theta), 0],
+#    [np.sin(theta), np.cos(theta), 0],
+#    [0, 0, 1]
+#])
+#display_corners = np.dot(display_corners, rotation_matrix_z.T)
 
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
