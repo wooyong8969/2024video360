@@ -24,18 +24,22 @@ class USAFoV():
         self.display_corners = np.array(display_corners)
 
     '''디스플레이 좌표계 - 사용자의 위치 계산'''
-    def _calculate_wf_position(self, eye_center, ry, webcam_theta, webcam_alpha):
-        W_user_position = np.array([
-          ry * ((((-2 * np.tan(webcam_theta/2) * eye_center[0]) / self.image_width) +  np.tan(webcam_theta/2))),  
+    def _calculate_df_position(self, eye_center, ry, webcam_theta, webcam_alpha, state):
+        reverse = -1 if state >= 3 else 1
+        D_user_position = (
+          reverse * ry * ((((-2 * np.tan(webcam_theta/2) * eye_center[0]) / self.image_width) +  np.tan(webcam_theta/2))),  
           -ry,
           ry * (((-2 * np.tan(webcam_alpha/2) * eye_center[1]) / self.image_height) +  np.tan(webcam_alpha/2))
-        ])
-        return W_user_position
+        )
+        print("webcam theta, alpha:", webcam_theta, webcam_alpha)
+        
+        return D_user_position
 
     '''사용자 좌표계 - 디스플레이의 네 모서리 좌표 계산'''
-    def _calculate_uf_corners(self, V_user_position):
-        V_display_corners = self.display_corners
-        U_display_corners = V_display_corners - np.array(V_user_position)
+    def _calculate_uf_corners(self, user_position):
+        D_display_corners = self.display_corners
+        user_position = np.array(user_position)
+        U_display_corners = D_display_corners - user_position
 
         return U_display_corners
     
@@ -55,18 +59,23 @@ class USAFoV():
         t_values_height = np.linspace(0, 1, self.display_height)
         t_width, t_height = np.meshgrid(t_values_width, t_values_height)
 
+        # 상단과 하단의 내분점 계산
         top_interpolation = (1 - t_width[:, :, np.newaxis]) * top_left + t_width[:, :, np.newaxis] * top_right
         bottom_interpolation = (1 - t_width[:, :, np.newaxis]) * bottom_left + t_width[:, :, np.newaxis] * bottom_right
 
-        #print("top_interpolation:", top_interpolation)
-        #print("bottom_interpolation:", bottom_interpolation)
+        # 디버깅 출력
+        print("top_interpolation:", top_interpolation)
+        print("bottom_interpolation:", bottom_interpolation)
 
+        # 최종 그리드 포인트 계산
         grid_points = (1 - t_height[:, :, np.newaxis]) * top_interpolation + t_height[:, :, np.newaxis] * bottom_interpolation
 
-        #print("grid_points shape:", grid_points.shape)
-        #print("grid_points sample:", grid_points[0, 0], grid_points[self.display_height // 2, self.display_width // 2], grid_points[-1, -1])
+        # 디버깅 출력
+        print("grid_points shape:", grid_points.shape)
+        print("grid_points sample:", grid_points[0, 0], grid_points[self.display_height // 2, self.display_width // 2], grid_points[-1, -1])
 
         return grid_points
+
 
     '''직각좌표를 구면 좌표로 변환'''
     def _convert_to_spherical(self, display_grid):
@@ -76,6 +85,16 @@ class USAFoV():
         display_phi = np.arctan2(zz, np.sqrt(xx**2 + yy**2))
     
         return display_theta, display_phi
+    
+    '''영상 좌표계 - 사용자의 위치 계산'''
+    def _calculate_vf_position(self, user_position):
+        V_user_position = np.array([
+            user_position[0],
+            user_position[1] + self.display_distance,
+            user_position[2]
+        ])
+
+        return V_user_position
 
     '''영상 좌표계 - 직선과 구의 교점 계산'''
     def _calculate_vf_sphere_intersections(self, V_display_grid, V_user_position):
@@ -109,11 +128,12 @@ class USAFoV():
         #print("frame height, width", self.frame_height, self.frame_width)
         #print("---------------------------------------------------------")
 
-        W_user_position = self._calculate_wf_position(eye_center, ry, self.PI_2, self.PI_2/640*480)
+        D_user_position = self._calculate_df_position(eye_center, ry, self.PI_2, self.PI_2/640*480, state)
+        print("D_user_position:", D_user_position)
         print("---------------------------------------------------------")
 
         if state == 1:      # /**사용자 고정 모드**/
-            U_display_corners = self._calculate_uf_corners(W_user_position) # 디스플레이 위치 재계산
+            U_display_corners = self._calculate_uf_corners(D_user_position) # 디스플레이 위치 재계산
             print("U_display_corners")
             print(U_display_corners)
             print("---------------------------------------------------------")
@@ -121,7 +141,11 @@ class USAFoV():
             U_display_grid = self._create_display_grid(U_display_corners)
             display_grid = U_display_grid
 
-        elif state == 2:    # /**디스플레이 고정 모드**/
+        elif state >= 2:    # /**디스플레이 고정 모드**/
+            V_user_position = self._calculate_vf_position(D_user_position)  # 사용자 위치 재계산
+            print("V_user_position:", V_user_position)
+            print("---------------------------------------------------------")
+
             V_display_grid = self._create_display_grid(self.display_corners)
             print("V_display_grid")
             print(V_display_grid)
@@ -136,6 +160,10 @@ class USAFoV():
 
         display_theta, display_phi =  self._convert_to_spherical(display_grid)
 
+        # 거울모드, 투명모드에서 시야각 조정
+        display_theta *= 5# if state >= 3 else 0
+        display_phi *= 5 #if state >= 3 else 0
+
         #print("theta")
         #print(display_theta)
         #print("---------------------------------------------------------")
@@ -144,11 +172,12 @@ class USAFoV():
         #print(display_phi)
         #print("---------------------------------------------------------")
 
-        result_image = cv2.remap(frame, (((self.PI + display_theta) / self.PI/2) * self.frame_width).astype(np.float32), ((self.PI_2 - display_phi / self.PI_2/2) * self.frame_height).astype(np.float32), interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
-
+        result_image = cv2.remap(frame, (((self.PI + display_theta) / self.PI/2) * self.frame_width).astype(np.float32),
+                                 ((self.PI_2 - display_phi / self.PI_2/2) * self.frame_height).astype(np.float32),
+                                 interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
+        
+        if state >= 3:
+            result_image = cv2.flip(result_image, 1)
+        
         return result_image
-
-
-
-        
-        
+    

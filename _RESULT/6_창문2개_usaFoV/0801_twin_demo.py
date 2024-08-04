@@ -5,8 +5,8 @@ import numpy as np
 import math
 from faceLandmark import FaceLandmarkDetector
 from usaFoV import USAFoV
+from screeninfo import get_monitors
 from time import time
-from scipy.signal import butter, lfilter
 
 '''사용자 정의값들'''
 
@@ -22,36 +22,52 @@ monitor_height = 23.5
 display_distance = 50  # video frame 원점에서 display frame 원점까지의 거리
 sphere_radius = 1000
 
-# 웹캠 좌표 (video frame)
-webcam_position = np.array([0, 50, monitor_height / 2])
+webcam_position = np.array([0, 50, monitor_height])
 
-# 디스플레이 꼭짓점 좌표 (video frame)
-display_corners = np.array([
+# 디스플레이 꼭짓점 좌표 (display frame)
+display_corners1 = np.array([
     [-monitor_width / 2, 50, monitor_height / 2],
-    [monitor_width / 2, 50, monitor_height / 2],
+    [0, 50, monitor_height / 2],
     [-monitor_width / 2, 50, -monitor_height / 2],
-    [monitor_width / 2, 50, -monitor_height / 2]
+    [0, 50, -monitor_height / 2]
 ])
 
-# 회전한 디스플레이 꼭짓점 좌표 (video frame)
 theta = np.radians(45)
 rotation_matrix_z = np.array([
     [np.cos(theta), -np.sin(theta), 0],
     [np.sin(theta), np.cos(theta), 0],
     [0, 0, 1]
 ])
-display_corners = np.dot(display_corners, rotation_matrix_z.T)
+display_corners1 = np.dot(display_corners1, rotation_matrix_z.T)
+
+display_corners2 = np.array([
+    [0, 50, monitor_height / 2],
+    [monitor_width / 2, 50, monitor_height / 2],
+    [0, 50, -monitor_height / 2],
+    [monitor_width / 2, 50, -monitor_height / 2]
+])
+
+theta = np.radians(-45)
+rotation_matrix_z = np.array([
+    [np.cos(theta), -np.sin(theta), 0],
+    [np.sin(theta), np.cos(theta), 0],
+    [0, 0, 1]
+])
+display_corners2 = np.dot(display_corners2, rotation_matrix_z.T)
+
+
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정): "))
 
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\0604_black_win.mp4'
-cap = cv2.VideoCapture(0)
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\20240604능선.mp4'
+cap = cv2.VideoCapture(1)
 #640 480
 video = cv2.VideoCapture(video_path) 
 
-usafov = USAFoV(display_shape=[800,1600], webcam_position=webcam_position, display_corners=display_corners, display_distance=display_distance, sphere_radius=sphere_radius)
+usafov1 = USAFoV(display_shape=[800,1600], webcam_position=webcam_position, display_corners=display_corners1, display_distance=display_distance, sphere_radius=sphere_radius)
+usafov2 = USAFoV(display_shape=[800,1600], webcam_position=webcam_position, display_corners=display_corners2, display_distance=display_distance, sphere_radius=sphere_radius)
 
 detector = FaceLandmarkDetector()
 
@@ -84,14 +100,17 @@ while True:
         ry = (base_distance_cm * base_width_px) / face_width  # 모니터와 사람 사이의 거리 (cm단위)
         print("main 2. 모니터-사용자 거리 계산", ry)
         
-        frame_usafov = usafov.toUSAFoV(frame, image.shape, eye_center, ry, state)
+        frame_usafov1 = usafov1.toUSAFoV(frame, image.shape, eye_center, ry, state)
+        frame_usafov2 = usafov2.toUSAFoV(frame, image.shape, eye_center, ry, state)
         print("main 3. frame 생성")
         ed = time()
         print("frame 생성 소요 시간:", ed - st)
     else:
-        frame_usafov = usafov.toUSAFoV(frame, image.shape, [320, 240], ry, state)
+        frame_usafov1 = usafov1.toUSAFoV(frame, image.shape, [320, 240], ry, state)
+        frame_usafov2 = usafov1.toUSAFoV(frame, image.shape, [320, 240], ry, state)
 
-    cv2.imshow('360 View', frame_usafov)
+    cv2.imshow('360 View 1', frame_usafov1)
+    cv2.imshow('360 View 2', frame_usafov2)
 
     key = cv2.waitKey(1)
     if key == ord('q'):
