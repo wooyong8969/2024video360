@@ -4,7 +4,7 @@ import numpy as np
 from com_face_landmark import FaceLandmarkDetector
 from com_nfov import NFOV
 
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\0604_black_win.mp4'
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\gnomonic.mp4'
 cap = cv2.VideoCapture(0) 
 video = cv2.VideoCapture(video_path) 
 
@@ -12,7 +12,7 @@ nfov = NFOV(height=400, width=800)
 detector = FaceLandmarkDetector()
 
 def calculate_dx(eye_center, frame_width):
-    # 화면 중심과 눈 중심의 차이를 구해 dx로 사용
+    # 화면 중심과 눈 중심의 차이를 이용해 dx로 사용
     screen_center = frame_width / 2
     dx = (screen_center - eye_center[0]) / frame_width
     return dx / 15

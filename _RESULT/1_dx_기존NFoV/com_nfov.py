@@ -85,8 +85,11 @@ class NFOV():
 
         # 구면 좌표를 이미지의 크기에 맞게 재배열 -> NFOV 이미지 생성에 사용
         self.sphericalCoordReshaped = self.sphericalCoord.reshape(self.height, self.width, 2).astype(np.float32) % 1
-
+        
         # 계산된 좌표를 사용해 원본 이미지에서 NFOV 이미지 추출
         # cv2.remap 함수로 픽셀을 새로운 위치로 매핑
-        out = cv2.remap(self.frame, (self.sphericalCoordReshaped[..., 0] * self.frame_width), (self.sphericalCoordReshaped[..., 1] * self.frame_height), interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
+        out = cv2.remap(self.frame,
+                        (self.sphericalCoordReshaped[..., 0] * self.frame_width),
+                        (self.sphericalCoordReshaped[..., 1] * self.frame_height),
+                        interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
         return out

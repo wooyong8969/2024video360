@@ -24,10 +24,9 @@ class USAFoV():
         self.display_corners = np.array(display_corners)
 
     '''디스플레이 좌표계 - 사용자의 위치 계산'''
-    def _calculate_df_position(self, eye_center, ry, webcam_theta, webcam_alpha, state):
-        reverse = -1 if state >= 3 else 1
+    def _calculate_df_position(self, eye_center, ry, webcam_theta, webcam_alpha):
         D_user_position = (
-          reverse * ry * ((((-2 * np.tan(webcam_theta/2) * eye_center[0]) / self.image_width) +  np.tan(webcam_theta/2))),  
+          ry * ((((-2 * np.tan(webcam_theta/2) * eye_center[0]) / self.image_width) +  np.tan(webcam_theta/2))),  
           -ry,
           ry * (((-2 * np.tan(webcam_alpha/2) * eye_center[1]) / self.image_height) +  np.tan(webcam_alpha/2))
         )
@@ -128,7 +127,7 @@ class USAFoV():
         #print("frame height, width", self.frame_height, self.frame_width)
         #print("---------------------------------------------------------")
 
-        D_user_position = self._calculate_df_position(eye_center, ry, self.PI_2, self.PI_2/640*480, state)
+        D_user_position = self._calculate_df_position(eye_center, ry, self.PI_2, self.PI_2/640*480)
         print("D_user_position:", D_user_position)
         print("---------------------------------------------------------")
 
@@ -141,7 +140,7 @@ class USAFoV():
             U_display_grid = self._create_display_grid(U_display_corners)
             display_grid = U_display_grid
 
-        elif state >= 2:    # /**디스플레이 고정 모드**/
+        elif state == 2:    # /**디스플레이 고정 모드**/
             V_user_position = self._calculate_vf_position(D_user_position)  # 사용자 위치 재계산
             print("V_user_position:", V_user_position)
             print("---------------------------------------------------------")
@@ -159,11 +158,8 @@ class USAFoV():
 
 
         display_theta, display_phi =  self._convert_to_spherical(display_grid)
-
-        # 거울모드, 투명모드에서 시야각 조정
-        display_theta *= 5# if state >= 3 else 0
-        display_phi *= 5 #if state >= 3 else 0
-
+        display_theta *= 10
+        display_phi *= 10
         #print("theta")
         #print(display_theta)
         #print("---------------------------------------------------------")
@@ -176,8 +172,9 @@ class USAFoV():
                                  ((self.PI_2 - display_phi / self.PI_2/2) * self.frame_height).astype(np.float32),
                                  interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
         
-        if state >= 3:
-            result_image = cv2.flip(result_image, 1)
-        
         return result_image
-    
+
+
+
+        
+        
