@@ -8,7 +8,7 @@ video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\gnomonic.mp4'
 cap = cv2.VideoCapture(0) 
 video = cv2.VideoCapture(video_path) 
 
-nfov = NFOV(height=400, width=800)
+nfov = NFOV(height=800, width=1600)
 detector = FaceLandmarkDetector()
 
 def calculate_dx(eye_center, frame_width):

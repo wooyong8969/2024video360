@@ -35,13 +35,13 @@ display_corners = np.array([
 
 state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정, 3: 거울 모드, 4: 투명 모드): "))
 
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\20240604능선.mp4'
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\gnomonic.mp4'
 cap0 = cv2.VideoCapture(0)  # 노트북 웹캠
 cap2 = cv2.VideoCapture(2)  # 하단 USB 웹캠
 cap3 = cv2.VideoCapture(3)  # 상단 USB 웹캠
 video = cv2.VideoCapture(video_path) 
 
-usafov = USAFoV(display_shape=[1080,1920],
+usafov = USAFoV(display_shape=[800,1600],
                 webcam_position=webcam_position,
                 display_corners=display_corners,
                 display_distance=display_distance,

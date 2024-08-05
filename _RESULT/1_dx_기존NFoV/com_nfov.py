@@ -12,7 +12,7 @@ import numpy as np
 
 # NFOV 클래스를 정의
 class NFOV():
-    def __init__(self, height=400, width=800):
+    def __init__(self, height, width):
         # FOV(Field Of View)의 기본값[90°, 45°]으로 설정
         self.FOV = [0.5, 0.5]
         # 앞으로 사용할 값 정의
