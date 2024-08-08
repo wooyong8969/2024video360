@@ -45,21 +45,21 @@ class USAFoV():
     
     '''디스플레이 그리드 생성'''
     def _create_display_grid(self, display_corners):
-        print("ch")
+        
         top_left = np.array(display_corners[0])
         top_right = np.array(display_corners[1])
         bottom_left = np.array(display_corners[2])
-        print("ch0")
+        
         top_left_matrix = top_left[:, np.newaxis]
-        print("ch1")
+        
         i = bottom_left - top_left
         j = top_right - top_left
         i_ = i / np.linalg.norm(i)
         j_ = j / np.linalg.norm(j)
-        print("ch2")
+        
         x = np.tile(np.arange(self.display_height), (self.display_width, 1)).T
         y = np.tile(np.arange(self.display_width), (self.display_height, 1))
-        print("ch3")
+        
         grid = np.stack((x, y), axis=0).reshape(2, -1)
         print("ch4")
         trans_matrix = np.array([i_, j_]).T

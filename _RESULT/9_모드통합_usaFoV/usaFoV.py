@@ -128,12 +128,12 @@ class USAFoV():
         #print("frame height, width", self.frame_height, self.frame_width)
         #print("---------------------------------------------------------")
 
-        D_user_position = self._calculate_df_position(eye_center, ry, self.PI_2, self.PI_2/640*480, state)
-        print("D_user_position:", D_user_position)
+        W_user_position = self._calculate_df_position(eye_center, ry, self.PI_2, self.PI_2/640*480, state)
+        print("D_user_position:", W_user_position)
         print("---------------------------------------------------------")
 
         if state == 1:      # /**사용자 고정 모드**/
-            U_display_corners = self._calculate_uf_corners(D_user_position) # 디스플레이 위치 재계산
+            U_display_corners = self._calculate_uf_corners(W_user_position) # 디스플레이 위치 재계산
             print("U_display_corners")
             print(U_display_corners)
             print("---------------------------------------------------------")
@@ -142,7 +142,7 @@ class USAFoV():
             display_grid = U_display_grid
 
         elif state >= 2:    # /**디스플레이 고정 모드**/
-            V_user_position = self._calculate_vf_position(D_user_position)  # 사용자 위치 재계산
+            V_user_position = self._calculate_vf_position(W_user_position)  # 사용자 위치 재계산
             print("V_user_position:", V_user_position)
             print("---------------------------------------------------------")
 
