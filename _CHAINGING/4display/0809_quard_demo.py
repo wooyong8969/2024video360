@@ -15,7 +15,6 @@ half_size = box_size / 2
 base_distance_cm = 100
 base_width_px = 80  # 1m 떨어진 얼굴 폭의 픽셀
 
-display_distance1 = 50  # video frame 원점에서 display frame 원점까지의 거리
 sphere_radius = 1000
 
 webcam_position = np.array([0, 83, -40])
@@ -54,10 +53,10 @@ video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\gnomonic.mp4'
 cap = cv2.VideoCapture(0)
 video = cv2.VideoCapture(video_path)
 
-usafov1 = USAFoV(display_shape=[800, 1600], webcam_position=webcam_position, display_corners=display_corners1, display_distance=display_distance1, sphere_radius=sphere_radius)
-usafov2 = USAFoV(display_shape=[800, 1600], webcam_position=webcam_position, display_corners=display_corners2, display_distance=display_distance2, sphere_radius=sphere_radius)
-usafov3 = USAFoV(display_shape=[800, 1600], webcam_position=webcam_position, display_corners=display_corners3, display_distance=display_distance3, sphere_radius=sphere_radius)
-usafov4 = USAFoV(display_shape=[800, 1600], webcam_position=webcam_position, display_corners=display_corners4, display_distance=display_distance4, sphere_radius=sphere_radius)
+usafov1 = USAFoV(display_shape=[200, 400], webcam_position=webcam_position, display_corners=display_corners1, sphere_radius=sphere_radius)
+usafov2 = USAFoV(display_shape=[200, 400], webcam_position=webcam_position, display_corners=display_corners2, sphere_radius=sphere_radius)
+usafov3 = USAFoV(display_shape=[200, 400], webcam_position=webcam_position, display_corners=display_corners3, sphere_radius=sphere_radius)
+usafov4 = USAFoV(display_shape=[200, 400], webcam_position=webcam_position, display_corners=display_corners4, sphere_radius=sphere_radius)
 
 detector = FaceLandmarkDetector()
 

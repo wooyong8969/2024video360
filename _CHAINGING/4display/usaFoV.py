@@ -4,7 +4,7 @@ import cv2
 from time import time
 
 class USAFoV():
-    def __init__(self, display_shape, webcam_position, display_corners, display_distance, sphere_radius):
+    def __init__(self, display_shape, webcam_position, display_corners, sphere_radius):
         self.PI = pi
         self.PI_2 = pi * 0.5
 
@@ -15,8 +15,6 @@ class USAFoV():
 
         self.image_height = None
         self.image_width = None
-
-        self.display_distance = display_distance
 
         self.sphere_radius = sphere_radius
 
@@ -88,12 +86,7 @@ class USAFoV():
     
     '''영상 좌표계 - 사용자의 위치 계산'''
     def _calculate_vf_position(self, user_position):
-        V_user_position = np.array([
-            user_position[0],
-            user_position[1] + self.display_distance,
-            user_position[2]
-        ])
-
+        V_user_position = np.array(user_position) + self.webcam_position
         return V_user_position
 
     '''영상 좌표계 - 직선과 구의 교점 계산'''

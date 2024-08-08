@@ -4,11 +4,10 @@ import numpy as np
 import math
 from faceLandmark import FaceLandmarkDetector
 from usaFoV import USAFoV
-from screeninfo import get_monitors
 from time import time
 
 '''사용자 정의값들'''
-
+print(1)
 box_size = 300
 half_size = box_size / 2
 
@@ -22,15 +21,13 @@ display_distance = 50  # video frame 원점에서 display frame 원점까지의 
 sphere_radius = 3000
 
 webcam_position = np.array([0, 50, monitor_height / 2]) # 웹캠 좌표 (video frame)
-
+print(1)
 # 디스플레이 꼭짓점 좌표 (video frame)
-display_corners = np.array([
-    [-monitor_width / 2, 50, monitor_height / 2],
-    [monitor_width / 2, 50, monitor_height / 2],
-    [-monitor_width / 2, 50, -monitor_height / 2],
-    [monitor_width / 2, 50, -monitor_height / 2]
+display_corners1 = np.array([
+    [-30, 80, -43], [30, 80, -43],
+    [-30, 80, 77], [30, 80, 77]
 ])
-
+print(2)
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정, 3: 거울 모드, 4: 투명 모드): "))
@@ -43,7 +40,7 @@ video = cv2.VideoCapture(video_path)
 
 usafov = USAFoV(display_shape=[800,1600],
                 webcam_position=webcam_position,
-                display_corners=display_corners,
+                display_corners=display_corners1,
                 display_distance=display_distance,
                 sphere_radius=sphere_radius)
 
