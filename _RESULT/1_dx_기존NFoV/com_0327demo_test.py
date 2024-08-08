@@ -4,7 +4,8 @@ import numpy as np
 from com_face_landmark import FaceLandmarkDetector
 from com_nfov import NFOV
 
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\gnomonic.mp4'
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\20240604능선.mp4'
+#video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\0528_test_video.mp4'
 cap = cv2.VideoCapture(0) 
 video = cv2.VideoCapture(video_path) 
 

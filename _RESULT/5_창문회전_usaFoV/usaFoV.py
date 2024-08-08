@@ -158,7 +158,9 @@ class USAFoV():
 
 
         display_theta, display_phi =  self._convert_to_spherical(display_grid)
-
+        #display_theta *= 5# if state >= 3 else 0
+        #display_phi *= 5 #if state >= 3 else 0
+        
         #print("theta")
         #print(display_theta)
         #print("---------------------------------------------------------")

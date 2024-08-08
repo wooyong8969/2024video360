@@ -31,38 +31,70 @@ display_corners1 = np.array([
     [-monitor_width / 2, 50, -monitor_height / 2],
     [0, 50, -monitor_height / 2]
 ])
-
-theta = np.radians(45)
+theta = np.radians(90)
 rotation_matrix_z = np.array([
     [np.cos(theta), -np.sin(theta), 0],
     [np.sin(theta), np.cos(theta), 0],
     [0, 0, 1]
 ])
-display_corners1 = np.dot(display_corners1, rotation_matrix_z.T)
 
+display_corners1 =  np.dot(display_corners1, rotation_matrix_z.T)
+
+'''
+# 제자리에서 회전
+center_of_display = np.mean(display_corners1, axis=0)
+display_corners_centered = display_corners1 - center_of_display
+
+theta = np.radians(90)
+rotation_matrix_z = np.array([
+    [np.cos(theta), -np.sin(theta), 0],
+    [np.sin(theta), np.cos(theta), 0],
+    [0, 0, 1]
+])
+
+rotated_corners  = np.dot(display_corners_centered, rotation_matrix_z.T)  # 시계방향으로 30도 회전한 디스플레이의 네 꼭짓점 좌표
+display_corners1 = rotated_corners + center_of_display
+
+'''
 display_corners2 = np.array([
     [0, 50, monitor_height / 2],
     [monitor_width / 2, 50, monitor_height / 2],
     [0, 50, -monitor_height / 2],
     [monitor_width / 2, 50, -monitor_height / 2]
 ])
-
-theta = np.radians(-45)
+theta = np.radians(-90)
 rotation_matrix_z = np.array([
     [np.cos(theta), -np.sin(theta), 0],
     [np.sin(theta), np.cos(theta), 0],
     [0, 0, 1]
 ])
-display_corners2 = np.dot(display_corners2, rotation_matrix_z.T)
 
+display_corners2 =  np.dot(display_corners2, rotation_matrix_z.T)
+
+'''
+center_of_display = np.mean(display_corners2, axis=0)
+display_corners_centered = display_corners2 - center_of_display
+
+theta = np.radians(-90)
+rotation_matrix_z = np.array([
+    [np.cos(theta), -np.sin(theta), 0],
+    [np.sin(theta), np.cos(theta), 0],
+    [0, 0, 1]
+])
+
+rotated_corners  = np.dot(display_corners_centered, rotation_matrix_z.T)  # 시계방향으로 30도 회전한 디스플레이의 네 꼭짓점 좌표
+display_corners2 = rotated_corners + center_of_display
+'''
 
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정): "))
 
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\20240604능선.mp4'
-cap = cv2.VideoCapture(1)
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\gnomonic.mp4'
+#video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\20240604능선.mp4'
+
+cap = cv2.VideoCapture(2)
 #640 480
 video = cv2.VideoCapture(video_path) 
 
@@ -86,6 +118,7 @@ while True:
         break
 
     results, image = detector.process_frame(image)
+    print("webcam:", image.shape[0], image.shape[2])
     print("###################################################################################")
     print("main 1. 이미지 전처리 완료")
     

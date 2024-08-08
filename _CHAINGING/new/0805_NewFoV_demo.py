@@ -1,10 +1,9 @@
-"""/**MAIN 파일**/"""
 import cv2
 from math import pi
 import numpy as np
 import math
 from faceLandmark import FaceLandmarkDetector
-from usaFoV import USAFoV
+from NusaFoV import USAFoV
 from screeninfo import get_monitors
 from time import time
 
@@ -20,7 +19,7 @@ monitor_width = 35
 monitor_height = 23.5
 
 display_distance = 50  # video frame 원점에서 display frame 원점까지의 거리
-sphere_radius = 1000
+sphere_radius = 10000
 
 webcam_position = np.array([0, 50, monitor_height / 2]) # 웹캠 좌표 (video frame)
 
@@ -32,44 +31,21 @@ display_corners = np.array([
     [monitor_width / 2, 50, -monitor_height / 2]
 ])
 
-
-# 원을 그리며 회전
-theta = np.radians(80)
-rotation_matrix_z = np.array([
-    [np.cos(theta), -np.sin(theta), 0],
-    [np.sin(theta), np.cos(theta), 0],
-    [0, 0, 1]
-])
-
-display_corners =  np.dot(display_corners, rotation_matrix_z.T)
-
-
-'''
-# 제자리에서 회전
-center_of_display = np.mean(display_corners, axis=0)
-display_corners_centered = display_corners - center_of_display
-
-theta = np.radians(-30)
-rotation_matrix_z = np.array([
-    [np.cos(theta), -np.sin(theta), 0],
-    [np.sin(theta), np.cos(theta), 0],
-    [0, 0, 1]
-])
-
-rotated_corners  = np.dot(display_corners_centered, rotation_matrix_z.T)  # 시계방향으로 30도 회전한 디스플레이의 네 꼭짓점 좌표
-display_corners = rotated_corners + center_of_display
-'''
-
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정): "))
+state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정, 3: 거울 모드, 4: 투명 모드): "))
 
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\gnomonic.mp4'
-cap = cv2.VideoCapture(0)
-#640 480
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\20240604능선.mp4'
+cap0 = cv2.VideoCapture(0)  # 노트북 웹캠
+cap2 = cv2.VideoCapture(2)  # 하단 USB 웹캠
+cap3 = cv2.VideoCapture(3)  # 상단 USB 웹캠
 video = cv2.VideoCapture(video_path) 
 
-usafov = USAFoV(display_shape=[1080,1920], webcam_position=webcam_position, display_corners=display_corners, display_distance=display_distance, sphere_radius=sphere_radius)
+usafov = USAFoV(display_shape=[800,1600],
+                webcam_position=webcam_position,
+                display_corners=display_corners,
+                display_distance=display_distance,
+                sphere_radius=sphere_radius)
 
 detector = FaceLandmarkDetector()
 
@@ -77,12 +53,24 @@ detector = FaceLandmarkDetector()
 
 while True:
     st = time()
-    ret, frame = video.read()
+    
+    if state in [1, 2]:
+        ret, frame = video.read()
+        success, image = cap0.read()
+    elif state == 3:
+        ret, frame = cap2.read()
+        success, image = cap2.read()
+    elif state == 4:
+        ret, frame = cap2.read()
+        success, image = cap3.read()
+    else:
+        print("잘못된 상태 값입니다.")
+        break
+
     if not ret:
         print("영상 오류")
         break
 
-    success, image = cap.read()
     if not success:
         print("웹캠 오류")
         break
@@ -115,6 +103,8 @@ while True:
     if key == ord('q'):
         break
 
-cap.release()
+cap0.release()
+cap2.release()
+cap3.release()
 video.release()
 cv2.destroyAllWindows()

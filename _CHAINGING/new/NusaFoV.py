@@ -174,13 +174,12 @@ class USAFoV():
 
         display_theta, display_phi =  self._convert_to_spherical(display_grid)
 
-        display_theta *= 10
-        display_phi *= 10
+        display_theta *= 5
+        display_phi *= 5
         
         sphericalCoord = np.stack((display_theta, display_phi), axis=-1)
         sphericalCoordReshaped = self._calcSphericaltoGnomonic(sphericalCoord.reshape(-1, 2)).reshape(self.display_height, self.display_width, 2)
 
-        # 좌표를 사용해 원본 이미지에서 NFOV 이미지 추출
         result_image = cv2.remap(frame,
                                  (sphericalCoordReshaped[..., 0] * self.frame_width).astype(np.float32),
                                  (sphericalCoordReshaped[..., 1] * self.frame_height).astype(np.float32),
