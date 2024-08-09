@@ -18,23 +18,23 @@ webcam_position = np.array([0, 83, -40])
 # 디스플레이 꼭짓점 좌표
 display_corners = [
     np.array([[-30, 80, -43], [30, 80, -43],
-              [-30, 80, -77], [30, 80, -77]]),  # 정면
+              [-30, 80, -77], [30, 80, -77]]),  # 앞
     np.array([[-39, 29, -45], [-18, 79, -45],
-              [-39, 29, -74], [-18, 79, -74]]),  # 왼쪽
+              [-39, 29, -74], [-18, 79, -74]]), # 왼쪽
     np.array([[18, 79, -45], [39, 29, -45],
-              [18, 79, -74], [39, 29, -74]]),  # 오른쪽
+              [18, 79, -74], [39, 29, -74]]),   # 오른쪽
     np.array([[-35, 80, -76], [35, 80, -76],
-              [-35, 40, -76], [35, 40, -76]])  # 바닥
+              [-35, 40, -76], [35, 40, -76]])   # 바닥
 ]
 
 state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정): "))
+
 video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\gnomonic.mp4'
 cap = cv2.VideoCapture(0)
 video = cv2.VideoCapture(video_path)
 
-# USAFoV 객체 초기화
-usafovs = [USAFoV(display_shape=[200, 400], webcam_position=webcam_position, display_corners=corners, sphere_radius=sphere_radius) for corners in display_corners]
-
+display_shapes = [(1080, 1920), (1080, 1920), (1080, 1920), (2160, 3840)]
+usafovs = [USAFoV(display_shape=shape, webcam_position=webcam_position, display_corners=corners, sphere_radius=sphere_radius) for shape, corners in zip(display_shapes, display_corners)]
 detector = FaceLandmarkDetector()
 
 def process_frame(video_frame, webcam_frame, eye_center, ry, state, usafov):
@@ -53,22 +53,23 @@ while True:
         break
 
     results, image = detector.process_frame(image)
-    print("webcam:", image.shape[0], image.shape[2])
+    print("webcam:", image.shape[0], image.shape[1])
     print("main 1. 이미지 전처리 완료")
 
     right_eye_points, left_eye_points = detector.draw_landmarks(image, results)
-    frames_usafov = [None] * 4  # 결과 프레임 저장용 리스트
+    frames_usafov = [None] * 4
 
     if right_eye_points and left_eye_points:
         eye_center = detector.get_eye_center(right_eye_points, left_eye_points)
         _, face_size = detector.get_face_size(results, image.shape)
         face_width = face_size[0]
-        ry = (base_distance_cm * base_width_px) / face_width
+        ry = (base_distance_cm * base_width_px) / face_width  # 모니터와 사람 사이의 거리
 
         with ThreadPoolExecutor(max_workers=4) as executor:
             futures = [executor.submit(process_frame, frame, image, eye_center, ry, state, usafov) for usafov in usafovs]
             for i, future in enumerate(futures):
                 frames_usafov[i] = future.result()
+
         print("main 3. frame 생성")
         ed = time()
         print("frame 생성 소요 시간:", ed - st)
