@@ -5,7 +5,6 @@ import numpy as np
 import math
 from faceLandmark import FaceLandmarkDetector
 from usaFoV import USAFoV
-from screeninfo import get_monitors
 from time import time
 
 '''사용자 정의값들'''

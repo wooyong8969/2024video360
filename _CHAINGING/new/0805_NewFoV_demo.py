@@ -23,10 +23,14 @@ sphere_radius = 10000
 
 webcam_position = np.array([0, 50, monitor_height / 2]) # 웹캠 좌표 (video frame)
 
-display_corners1 = np.array([
-    [-30, 80, -43], [30, 80, -43],
-    [-30, 80, 77], [30, 80, 77]
+# 디스플레이 꼭짓점 좌표 (video frame)
+display_corners = np.array([
+    [-monitor_width / 2, 50, monitor_height / 2],
+    [monitor_width / 2, 50, monitor_height / 2],
+    [-monitor_width / 2, 50, -monitor_height / 2],
+    [monitor_width / 2, 50, -monitor_height / 2]
 ])
+
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정, 3: 거울 모드, 4: 투명 모드): "))
@@ -39,7 +43,7 @@ video = cv2.VideoCapture(video_path)
 
 usafov = USAFoV(display_shape=[800,1600],
                 webcam_position=webcam_position,
-                display_corners=display_corners1,
+                display_corners=display_corners,
                 display_distance=display_distance,
                 sphere_radius=sphere_radius)
 

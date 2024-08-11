@@ -7,7 +7,7 @@ from usaFoV import USAFoV
 from time import time
 
 '''사용자 정의값들'''
-print(1)
+
 box_size = 300
 half_size = box_size / 2
 
@@ -17,31 +17,29 @@ base_width_px = 80 # 1m 떨어진 얼굴 폭의 픽셀
 monitor_width = 35
 monitor_height = 23.5
 
-display_distance = 50  # video frame 원점에서 display frame 원점까지의 거리
-sphere_radius = 3000
+sphere_radius = 10000
 
-webcam_position = np.array([0, 50, monitor_height / 2]) # 웹캠 좌표 (video frame)
-print(1)
+webcam_position = np.array([0, 110, -3]) # 웹캠 좌표 (video frame)
+
 # 디스플레이 꼭짓점 좌표 (video frame)
-display_corners1 = np.array([
-    [-30, 80, -43], [30, 80, -43],
-    [-30, 80, 77], [30, 80, 77]
+display_corners = np.array([
+    [-24, 19, -10], [24, 19, -10],
+    [-24, 19, -35], [24, 19, -35]
 ])
-print(2)
+
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정, 3: 거울 모드, 4: 투명 모드): "))
 
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\20240604능선.mp4'
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\two.mp4'
 cap0 = cv2.VideoCapture(0)  # 노트북 웹캠
-cap2 = cv2.VideoCapture(2)  # 상단 USB 웹캠
-cap3 = cv2.VideoCapture(3)  # 하단 USB 웹캠
+cap2 = cv2.VideoCapture(3)  # 정면
+cap3 = cv2.VideoCapture(1)  # 후면
 video = cv2.VideoCapture(video_path) 
 
 usafov = USAFoV(display_shape=[800,1600],
                 webcam_position=webcam_position,
-                display_corners=display_corners1,
-                display_distance=display_distance,
+                display_corners=display_corners,
                 sphere_radius=sphere_radius)
 
 detector = FaceLandmarkDetector()
@@ -55,10 +53,10 @@ while True:
         ret, frame = video.read()
         success, image = cap0.read()
     elif state == 3:
-        ret, frame = cap2.read()
+        ret, frame = video.read()
         success, image = cap2.read()
     elif state == 4:
-        ret, frame = cap3.read()
+        ret, frame = video.read()
         frame = cv2.flip(frame, 1)
         success, image = cap2.read()
     else:

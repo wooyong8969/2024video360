@@ -4,7 +4,7 @@ import cv2
 from time import time
 
 class USAFoV():
-    def __init__(self, display_shape, webcam_position, display_corners, display_distance, sphere_radius):
+    def __init__(self, display_shape, webcam_position, display_corners, sphere_radius):
         self.PI = pi
         self.PI_2 = pi * 0.5
 
@@ -15,8 +15,6 @@ class USAFoV():
 
         self.image_height = None
         self.image_width = None
-
-        self.display_distance = display_distance
 
         self.sphere_radius = sphere_radius
 
@@ -88,12 +86,7 @@ class USAFoV():
     
     '''영상 좌표계 - 사용자의 위치 계산'''
     def _calculate_vf_position(self, user_position):
-        V_user_position = np.array([
-            user_position[0],
-            user_position[1] + self.display_distance,
-            user_position[2]
-        ])
-
+        V_user_position = np.array(user_position) + self.webcam_position
         return V_user_position
 
     '''영상 좌표계 - 직선과 구의 교점 계산'''
@@ -128,8 +121,8 @@ class USAFoV():
         #print("frame height, width", self.frame_height, self.frame_width)
         #print("---------------------------------------------------------")
 
-        W_user_position = self._calculate_df_position(eye_center, ry, self.PI_2, self.PI_2/640*480, state)
-        print("D_user_position:", W_user_position)
+        W_user_position = self._calculate_df_position(eye_center, ry, self.PI*130/180, self.PI*130/180, state)
+        print("W_user_position:", W_user_position)
         print("---------------------------------------------------------")
 
         if state == 1:      # /**사용자 고정 모드**/
@@ -161,8 +154,8 @@ class USAFoV():
         display_theta, display_phi =  self._convert_to_spherical(display_grid)
 
         # 거울모드, 투명모드에서 시야각 조정
-        display_theta *= 5# if state >= 3 else 0
-        display_phi *= 5 #if state >= 3 else 0
+        #display_theta *= 2.48 # if state >= 3 else 0
+        #display_phi *= 1.24 #if state >= 3 else 0
 
         #print("theta")
         #print(display_theta)

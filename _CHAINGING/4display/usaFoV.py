@@ -121,7 +121,7 @@ class USAFoV():
         #print("frame height, width", self.frame_height, self.frame_width)
         #print("---------------------------------------------------------")
 
-        W_user_position = self._calculate_df_position(eye_center, ry, self.PI_2, self.PI_2/640*480, state)
+        W_user_position = self._calculate_df_position(eye_center, ry, self.PI*130/180, self.PI*130/180, state)
         print("W_user_position:", W_user_position)
         print("---------------------------------------------------------")
 

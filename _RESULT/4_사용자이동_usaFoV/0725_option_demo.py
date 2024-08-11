@@ -5,7 +5,6 @@ import numpy as np
 import math
 from faceLandmark import FaceLandmarkDetector
 from usaFoV import USAFoV
-from screeninfo import get_monitors
 from time import time
 
 '''사용자 정의값들'''
@@ -26,17 +25,18 @@ webcam_position = np.array([0, 0, monitor_height / 2])
 
 # 디스플레이 꼭짓점 좌표 (display frame)
 display_corners = np.array([
-    [-monitor_width / 2, 0, monitor_height / 2],
-    [monitor_width / 2, 0, monitor_height / 2],
-    [-monitor_width / 2, 0, -monitor_height / 2],
-    [monitor_width / 2, 0, -monitor_height / 2]
+    [-monitor_width / 2, 0, monitor_height / 2 + 10],
+    [monitor_width / 2, 0, monitor_height / 2 + 10],
+    [-monitor_width / 2, 0, -monitor_height / 2 + 10],
+    [monitor_width / 2, 0, -monitor_height / 2 + 10]
 ])
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정): "))
 
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\0604_black_win.mp4'
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\0528_test_video.mp4'
+#video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\0604_black_win.mp4'
 cap = cv2.VideoCapture(0)
 #640 480
 video = cv2.VideoCapture(video_path) 
