@@ -6,7 +6,7 @@ Copyright (c) 2021 Vít Ambrož
 https://github.com/VitaAmbroz/360Tracking
 
 '''
-from cv2 import cv2
+import cv2
 from math import pi
 import numpy as np
 

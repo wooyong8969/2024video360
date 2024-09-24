@@ -11,33 +11,29 @@ from time import time
 box_size = 300
 half_size = box_size / 2
 
-base_distance_cm = 100
-base_width_px = 80 # 1m 떨어진 얼굴 폭의 픽셀
+base_distance_cm = 45
+base_width_px = 126 # 1m 떨어진 얼굴 폭의 픽셀
 
-monitor_width = 35
-monitor_height = 23.5
+sphere_radius = 1000
 
-sphere_radius = 10000
-
-webcam_position = np.array([0, 110, -3]) # 웹캠 좌표 (video frame)
+webcam_position = np.array([0, 45, -10]) # 웹캠 좌표 (video frame)
 
 # 디스플레이 꼭짓점 좌표 (video frame)
 display_corners = np.array([
-    [-24, 19, -10], [24, 19, -10],
-    [-24, 19, -35], [24, 19, -35]
+    [-17, 45, -10], [17, 45, -10],
+    [-17, 45, -35], [17, 45, -35]
 ])
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정, 3: 거울 모드, 4: 투명 모드): "))
 
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\two.mp4'
-cap0 = cv2.VideoCapture(0)  # 노트북 웹캠
-cap2 = cv2.VideoCapture(3)  # 정면
-cap3 = cv2.VideoCapture(1)  # 후면
-video = cv2.VideoCapture(video_path) 
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\gnomonic.mp4'
+capf = cv2.VideoCapture(0)  # 정면(front)
+capb = cv2.VideoCapture(1)  # 후면(back)
+video = cv2.VideoCapture(video_path)    # 360 영상
 
-usafov = USAFoV(display_shape=[800,1600],
+usafov = USAFoV(display_shape=[1080,1920],
                 webcam_position=webcam_position,
                 display_corners=display_corners,
                 sphere_radius=sphere_radius)
@@ -51,14 +47,14 @@ while True:
     
     if state in [1, 2]:
         ret, frame = video.read()
-        success, image = cap0.read()
+        success, image = capf.read()
     elif state == 3:
-        ret, frame = video.read()
-        success, image = cap2.read()
+        ret, frame = capf.read()
+        success, image = capf.read()
     elif state == 4:
-        ret, frame = video.read()
+        ret, frame = capb.read()
         frame = cv2.flip(frame, 1)
-        success, image = cap2.read()
+        success, image = capf.read()
     else:
         print("잘못된 상태 값입니다.")
         break

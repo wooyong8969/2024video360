@@ -37,7 +37,7 @@ display_corners = np.array([
 state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정, 3: 거울 모드): "))
 
 video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\20240604능선.mp4'
-cap = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(0)
 #640 480
 video = cv2.VideoCapture(video_path) 
 

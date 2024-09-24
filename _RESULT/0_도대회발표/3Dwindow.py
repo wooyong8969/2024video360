@@ -7,10 +7,10 @@ def calculate_view_angle(position, corner):
     return vector / np.linalg.norm(vector)
 
 R = 1000
-box_size = 300
+box_size = 400
 half_size = box_size / 2
-dx = 100
-dy = -100
+dx = 150
+dy = 0
 
 fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={"projection": "3d"})
 

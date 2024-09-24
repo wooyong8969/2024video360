@@ -1,8 +1,16 @@
+print(0)
+
 import cv2
 import numpy as np
 import time
+
+print(0)
 from com_face_landmark import FaceLandmarkDetector
+
+print(1)
 from com_nfov import NFOV
+
+print(0)
 
 video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\0604_black_win.mp4'
 cap = cv2.VideoCapture(0) 

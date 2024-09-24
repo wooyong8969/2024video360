@@ -4,26 +4,32 @@ import numpy as np
 from com_face_landmark import FaceLandmarkDetector
 from com_nfov import NFOV
 
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\20240604능선.mp4'
-#video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\0528_test_video.mp4'
-cap = cv2.VideoCapture(0) 
-video = cv2.VideoCapture(video_path) 
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\0812.jpg'
+cap = cv2.VideoCapture(2) 
+frame = cv2.imread(video_path)
 
-nfov = NFOV(height=800, width=1600)
+nfov = NFOV(height=1080, width=1920)
 detector = FaceLandmarkDetector()
 
 def calculate_dx(eye_center, frame_width):
     # 화면 중심과 눈 중심의 차이를 이용해 dx로 사용
     screen_center = frame_width / 2
     dx = (screen_center - eye_center[0]) / frame_width
-    return dx / 15
+    return dx / 5
+
+def crop_center(image, scale=5):
+    height, width = image.shape[:2]
+    new_height = height // scale
+    new_width = width // scale
+    
+    start_x = (width - new_width) // 2
+    start_y = (height - new_height) // 2
+    
+    cropped_image = image[start_y:start_y + new_height, start_x:start_x + new_width]
+    return cv2.resize(cropped_image, (width, height), interpolation=cv2.INTER_LINEAR)
+
 
 while True:
-    ret, frame = video.read()
-    if not ret:
-        print("영상 오류")
-        break
-
     success, image = cap.read()
     if not success:
         print("웹캠 오류")
@@ -40,7 +46,7 @@ while True:
         frame_nfov = nfov.toNFOV(frame, center_point)
     else:
         frame_nfov = nfov.toNFOV(frame, np.array([0.5, 0.5]))
-
+    frame_nfov = crop_center(frame_nfov)
     cv2.imshow('360 View', frame_nfov)
 
     key = cv2.waitKey(1)
@@ -48,5 +54,4 @@ while True:
         break
 
 cap.release()
-video.release()
 cv2.destroyAllWindows()

@@ -1,7 +1,6 @@
 import numpy as np
 from math import pi, tan
 import cv2
-from time import time
 
 class USAFoV():
     def __init__(self, display_shape, webcam_position, display_corners, sphere_radius):

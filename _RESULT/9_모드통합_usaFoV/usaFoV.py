@@ -61,14 +61,11 @@ class USAFoV():
         top_interpolation = (1 - t_width[:, :, np.newaxis]) * top_left + t_width[:, :, np.newaxis] * top_right
         bottom_interpolation = (1 - t_width[:, :, np.newaxis]) * bottom_left + t_width[:, :, np.newaxis] * bottom_right
 
-        # 디버깅 출력
         print("top_interpolation:", top_interpolation)
         print("bottom_interpolation:", bottom_interpolation)
 
-        # 최종 그리드 포인트 계산
         grid_points = (1 - t_height[:, :, np.newaxis]) * top_interpolation + t_height[:, :, np.newaxis] * bottom_interpolation
 
-        # 디버깅 출력
         print("grid_points shape:", grid_points.shape)
         print("grid_points sample:", grid_points[0, 0], grid_points[self.display_height // 2, self.display_width // 2], grid_points[-1, -1])
 
@@ -121,7 +118,7 @@ class USAFoV():
         #print("frame height, width", self.frame_height, self.frame_width)
         #print("---------------------------------------------------------")
 
-        W_user_position = self._calculate_df_position(eye_center, ry, self.PI*130/180, self.PI*130/180, state)
+        W_user_position = self._calculate_df_position(eye_center, ry, self.PI*90/180, self.PI*45/180, state)
         print("W_user_position:", W_user_position)
         print("---------------------------------------------------------")
 
@@ -150,20 +147,7 @@ class USAFoV():
         else:               # /**예외처리**/
             print("state 오류. state:", state)
 
-
         display_theta, display_phi =  self._convert_to_spherical(display_grid)
-
-        # 거울모드, 투명모드에서 시야각 조정
-        #display_theta *= 2.48 # if state >= 3 else 0
-        #display_phi *= 1.24 #if state >= 3 else 0
-
-        #print("theta")
-        #print(display_theta)
-        #print("---------------------------------------------------------")
-
-        #print("phi")
-        #print(display_phi)
-        #print("---------------------------------------------------------")
 
         result_image = cv2.remap(frame, (((self.PI + display_theta) / self.PI/2) * self.frame_width).astype(np.float32),
                                  ((self.PI_2 - display_phi / self.PI_2/2) * self.frame_height).astype(np.float32),
