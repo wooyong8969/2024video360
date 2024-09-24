@@ -47,14 +47,14 @@ class USAFoV():
     '''사용자 좌표계 - 디스플레이의 네 모서리 좌표 계산'''
     def _calculate_uf_corners(self, user_position):
         D_display_corners = self.display_corners
-        user_position = cp.array(user_position)  # cupy 배열로 변경
+        user_position = cp.array(user_position)
         U_display_corners = D_display_corners - user_position
 
         return U_display_corners
 
     '''디스플레이 그리드 생성'''
     def _create_display_grid(self, display_corners):
-        top_left = cp.array(display_corners[0])  # cupy 배열로 변경
+        top_left = cp.array(display_corners[0])
         top_right = cp.array(display_corners[1])
         bottom_left = cp.array(display_corners[2])
         bottom_right = cp.array(display_corners[3])
@@ -64,9 +64,9 @@ class USAFoV():
         print("bottom_left:", bottom_left)
         print("bottom_right:", bottom_right)
 
-        t_values_width = cp.linspace(0, 1, self.display_width)  # cupy.linspace 사용
+        t_values_width = cp.linspace(0, 1, self.display_width)
         t_values_height = cp.linspace(0, 1, self.display_height)
-        t_width, t_height = cp.meshgrid(t_values_width, t_values_height)  # cupy.meshgrid 사용
+        t_width, t_height = cp.meshgrid(t_values_width, t_values_height)
 
         # 상단과 하단의 내분점 계산
         top_interpolation = (1 - t_width[:, :, cp.newaxis]) * top_left + t_width[:, :, cp.newaxis] * top_right
@@ -87,21 +87,15 @@ class USAFoV():
     def _convert_to_spherical(self, display_grid):
         xx, yy, zz = display_grid[..., 0], display_grid[..., 1], display_grid[..., 2]
 
-        display_theta = cp.arctan2(xx, yy)  # cupy.arctan2 사용
-        display_phi = cp.arctan2(zz, cp.sqrt(xx**2 + yy**2))  # cupy.sqrt 사용
+        display_theta = cp.arctan2(xx, yy)
+        display_phi = cp.arctan2(zz, cp.sqrt(xx**2 + yy**2))
 
         return display_theta, display_phi
 
     '''영상 좌표계 - 사용자의 위치 계산'''
     def _calculate_vf_position(self, user_position):
-        print("in")
-        print(f"user_position type: {type(user_position)}")
-        print(f"self.webcam_position type: {type(self.webcam_position)}")
-
-        # CuPy 배열끼리 연산
         V_user_position = user_position + self.webcam_position
 
-        print("out")
         return V_user_position
 
     '''영상 좌표계 - 직선과 구의 교점 계산'''
