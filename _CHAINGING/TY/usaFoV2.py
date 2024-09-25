@@ -1,42 +1,69 @@
-import cupy as cp
+import cupy as cp  # numpy 대신 cupy를 사용
 from math import pi, tan
 import cv2
+from time import time
 
-class USAFoV:
+class USAFoV():
     def __init__(self, display_shape, webcam_info, display_corners, sphere_radius):
         self.PI = pi
         self.PI_2 = pi * 0.5
 
-        self.display_height, self.display_width = display_shape
+        self.frame = None
+        self.display = None
+        self.display_height = display_shape[0]
+        self.display_width = display_shape[1]
+
         self.image_height = None
         self.image_width = None
 
         self.sphere_radius = sphere_radius
+
         self.webcam_position = cp.array(webcam_info[0])
         self.horizon_tan = cp.array(webcam_info[1])
         self.vertical_tan = cp.array(webcam_info[2])
 
-        self.display_corners = cp.array(display_corners)
+        print("ch")
 
+        self.display_corners = cp.array(display_corners)  # cupy 배열로 변경
+
+    '''디스플레이 좌표계 - 사용자의 위치 계산'''
     def _calculate_df_position(self, eye_center, ry, webcam_theta, webcam_alpha, state):
-        """디스플레이 좌표계 - 사용자의 위치 계산"""
-        reverse = -1 if state == 3 else 1
-        x_component = reverse * ry * ((((-2 * tan(webcam_theta / 2) * eye_center[0]) / self.image_width) + tan(webcam_theta / 2)))
-        y_component = -ry
-        z_component = ry * (((-2 * tan(webcam_alpha / 2) * eye_center[1]) / self.image_height) + tan(webcam_alpha / 2))
-        
-        D_user_position = cp.array([x_component, y_component, z_component], dtype=cp.float32)
-        return D_user_position
+        reverse = -1 if state >= 3 else 1
+        # 각 계산 결과를 별도로 저장
+        try:
+            x_component = reverse * ry * ((((-2 * tan(webcam_theta / 2) * eye_center[0]) / self.image_width) + tan(webcam_theta / 2)))
+            y_component = -ry
+            z_component = ry * (((-2 * tan(webcam_alpha / 2) * eye_center[1]) / self.image_height) + tan(webcam_alpha / 2))
 
+            # 각 값을 출력하여 디버깅
+            # print(f"x_component: {x_component}")
+            # print(f"y_component: {y_component}")
+            # print(f"z_component: {z_component}")
+
+            # CuPy 배열 생성
+            D_user_position = cp.array([x_component, y_component, z_component], dtype=cp.float32)
+
+            # print("webcam theta, alpha:", webcam_theta, webcam_alpha)
+            return D_user_position
+
+        except Exception as e:
+            print(f"Error in _calculate_df_position: {e}")
+            return None
+
+    '''사용자 좌표계 - 디스플레이의 네 모서리 좌표 계산'''
     def _calculate_uf_corners(self, user_position):
-        """사용자 좌표계 - 디스플레이의 네 모서리 좌표 계산"""
-        U_display_corners = self.display_corners - cp.array(user_position)
+        D_display_corners = self.display_corners
+        user_position = cp.array(user_position)  # cupy 배열로 변경
+        U_display_corners = D_display_corners - user_position
+
         return U_display_corners
 
+    '''디스플레이 그리드 생성'''
     def _create_display_grid(self, display_corners):
-        """디스플레이 그리드 생성"""
-        top_left, top_right = cp.array(display_corners[0]), cp.array(display_corners[1])
-        bottom_left, bottom_right = cp.array(display_corners[2]), cp.array(display_corners[3])
+        top_left = cp.array(display_corners[0])
+        top_right = cp.array(display_corners[1])
+        bottom_left = cp.array(display_corners[2])
+        bottom_right = cp.array(display_corners[3])
 
         t_values_width = cp.linspace(0, 1, self.display_width)
         t_values_height = cp.linspace(0, 1, self.display_height)
@@ -47,32 +74,47 @@ class USAFoV:
 
         grid_points = (1 - t_height[:, :, cp.newaxis]) * top_interpolation + t_height[:, :, cp.newaxis] * bottom_interpolation
         return grid_points
-    
+
+    '''직각좌표를 구면 좌표로 변환'''
     def _convert_to_spherical(self, display_grid):
-        """직각좌표를 구면 좌표로 변환"""
         xx, yy, zz = display_grid[..., 0], display_grid[..., 1], display_grid[..., 2]
-        display_theta = cp.arctan2(xx, yy)
-        display_phi = cp.arctan2(zz, cp.sqrt(xx**2 + yy**2))
+
+        display_theta = cp.arctan2(xx, yy)  # cupy.arctan2 사용
+        display_phi = cp.arctan2(zz, cp.sqrt(xx**2 + yy**2))  # cupy.sqrt 사용
+
         return display_theta, display_phi
 
+    '''영상 좌표계 - 사용자의 위치 계산'''
     def _calculate_vf_position(self, user_position):
-        """영상 좌표계 - 사용자의 위치 계산"""
+        # print("in")
+        # print(f"user_position type: {type(user_position)}")
+        # print(f"self.webcam_position type: {type(self.webcam_position)}")
+
+        # CuPy 배열끼리 연산
         V_user_position = user_position + self.webcam_position
+
+        # print("out")
         return V_user_position
 
+    '''영상 좌표계 - 직선과 구의 교점 계산'''
     def _calculate_vf_sphere_intersections(self, V_display_grid, V_user_position):
-        """영상 좌표계 - 직선과 구의 교점 계산"""
         direction = V_display_grid - V_user_position
-        a = cp.einsum('ijk,ijk->ij', direction, direction)
-        b = 2 * cp.einsum('ijk,k->ij', direction, V_user_position)
-        c = cp.dot(V_user_position, V_user_position) - self.sphere_radius**2
-        discriminant = b**2 - 4 * a * c
-        sqrt_discriminant = cp.sqrt(discriminant)
 
+        a = cp.einsum('ijk,ijk->ij', direction, direction)  # cupy.einsum 사용
+        b = 2 * cp.einsum('ijk,k->ij', direction, V_user_position)
+        c = cp.dot(V_user_position, V_user_position) - self.sphere_radius**2  # cupy.dot 사용
+
+        discriminant = b**2 - 4 * a * c
+
+        sqrt_discriminant = cp.sqrt(discriminant)  # cupy.sqrt 사용
         t1 = (-b + sqrt_discriminant) / (2 * a)
         t2 = (-b - sqrt_discriminant) / (2 * a)
-        t = cp.where(t1 > 0, t1, t2)
+
+        t = cp.where(t1 > 0, t1, t2)  # cupy.where 사용
+        t = cp.where(t > 0, t, cp.nan)
+
         intersection_points = V_user_position + t[..., cp.newaxis] * direction
+
         return intersection_points
     
     def _calculate_vf_plane_intersections(self, V_display_grid, V_user_position):
@@ -86,9 +128,11 @@ class USAFoV:
         intersection_points = cp.array([x_intersection, cp.full_like(x_intersection, y_plane), z_intersection], dtype=cp.float32)
         return intersection_points
 
+    '''USAFoV 추출'''
     def toUSAFoV(self, frame, image_shape, eye_center, ry, state):
         """USAFoV 추출"""
-        self.image_height, self.image_width = image_shape
+        # image_shape가 (height, width, channels)일 가능성이 있으므로, height와 width만 추출
+        self.image_height, self.image_width = image_shape[:2]  # 앞의 두 값만 추출
         self.frame_height, self.frame_width = frame.shape[:2]
 
         W_user_position = self._calculate_df_position(eye_center, ry, self.PI/3, (self.PI/3)*2/3, state)
@@ -123,6 +167,5 @@ class USAFoV:
         # 거울 모드 처리
         if state == 3:
             result_image = cv2.flip(result_image, 1)
-
 
         return result_image

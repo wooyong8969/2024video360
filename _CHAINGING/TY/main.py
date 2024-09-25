@@ -3,45 +3,36 @@ from math import pi
 import cupy as cp
 import math
 from faceLandmark import FaceLandmarkDetector
-from usaFoV import USAFoV
+from usaFoV2 import USAFoV
 from time import time
 
 '''사용자 정의값들'''
 
-box_size = 300
-half_size = box_size / 2
+# ry 계산 위한 변수들
+base_distance_cm = 70
+base_width_px = 130
+sphere_radius = 1000
 
-base_distance_cm = 100
-base_width_px = 80  # 1m 떨어진 얼굴 폭의 픽셀
+# 웹캠 관련 변수들
+webcam_position = cp.array([0, 90, 0])
+horizon_tan = cp.float32(360) * cp.tan(cp.pi / cp.float32(4))
+vertical_tan = cp.float32(360) * cp.tan(cp.pi / cp.float32(4)) * (9 / 16)
+webcam_info = [webcam_position, horizon_tan, vertical_tan]
 
-monitor_width = 35
-monitor_height = 23.5
-
-display_distance = 50  # video frame 원점에서 display frame 원점까지의 거리
-sphere_radius = 3000
-
-webcam_position = cp.array([0, 50, monitor_height / 2])  # 웹캠 좌표 (video frame)
-
-# 디스플레이 꼭짓점 좌표 (video frame)
-display_corners = cp.array([
-    [-monitor_width / 2, 50, monitor_height / 2],
-    [monitor_width / 2, 50, monitor_height / 2],
-    [-monitor_width / 2, 50, -monitor_height / 2],
-    [monitor_width / 2, 50, -monitor_height / 2]
-])
+display_corners = cp.array([[-31, 90, -3], [31, 90, -3],
+             [-31, 90, -37], [31, 90, -37]])
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정, 3: 거울 모드, 4: 투명 모드): "))
 
-video_path = r'C:\Users\user\Desktop\2024window\gnomonic.mp4'
-cap0 = cv2.VideoCapture(1)  # 노트북 웹캠
-cap2 = cv2.VideoCapture(0)  # 정면 웹캠
-cap3 = cv2.VideoCapture(2)  # 후면 웹캠
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\gnomonic.mp4'
+capf = cv2.VideoCapture(0)  # 정면 웹캠
+capb = cv2.VideoCapture(1)  # 후면 웹캠
 video = cv2.VideoCapture(video_path)
 
 usafov = USAFoV(display_shape=[800, 1600],
-                webcam_position=webcam_position,
+                webcam_info=webcam_info,
                 display_corners=display_corners,
                 sphere_radius=sphere_radius)
 
@@ -54,14 +45,14 @@ while True:
 
     if state in [1, 2]:
         ret, frame = video.read()
-        success, image = cap2.read()
+        success, image = capf.read()
     elif state == 3:
-        ret, frame = cap2.read()
-        success, image = cap2.read()
+        ret, frame = capf.read()
+        success, image = capf.read()
     elif state == 4:
-        ret, frame = cap3.read()
+        ret, frame = capb.read()
         frame = cv2.flip(frame, 1)
-        success, image = cap2.read()
+        success, image = capf.read()
     else:
         print("잘못된 상태 값입니다.")
         break
@@ -114,8 +105,7 @@ while True:
     if key == ord('q'):
         break
 
-cap0.release()
-cap2.release()
-cap3.release()
+capf.release()
+capb.release()
 video.release()
 cv2.destroyAllWindows()
