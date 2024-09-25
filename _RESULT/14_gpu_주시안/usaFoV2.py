@@ -123,27 +123,11 @@ class USAFoV():
             V_display_grid = self._create_display_grid(self.display_corners)
             V_view_grid = self._calculate_vf_sphere_intersections(V_display_grid, V_user_position)
             display_grid = V_view_grid
-        elif state in [3, 4]:   # /**투명 모드 및 거울 모드**/
+        elif state in [3, 4]:   # /**투명모드**/
             V_user_position = self._calculate_vf_position(W_user_position)  # 사용자 위치 재계산
-
-            # 1. 네 모서리에 대한 교점 좌표 계산
-            V_display_corners = cp.array(self.display_corners)
-            V_corners_intersection = self._calculate_vf_plane_intersections(V_display_corners, V_user_position)
-
-            top_left, top_right, bottom_left, bottom_right = V_corners_intersection.T
-
-            # 2. 선형 보간을 위해 meshgrid 생성
-            t_values_width = cp.linspace(0, 1, self.display_width)  # 가로 방향 보간 값
-            t_values_height = cp.linspace(0, 1, self.display_height)  # 세로 방향 보간 값
-            t_width, t_height = cp.meshgrid(t_values_width, t_values_height)
-
-            # 3. 상단과 하단 모서리 사이에서 선형 보간
-            top_interpolation = (1 - t_width[..., cp.newaxis]) * top_left + t_width[..., cp.newaxis] * top_right
-            bottom_interpolation = (1 - t_width[..., cp.newaxis]) * bottom_left + t_width[..., cp.newaxis] * bottom_right
-
-            # 4. 상단과 하단 보간 값을 이용해 전체 그리드를 보간
-            display_grid = (1 - t_height[..., cp.newaxis]) * top_interpolation + t_height[..., cp.newaxis] * bottom_interpolation
-
+            V_display_grid = self._create_display_grid(self.display_corners)
+            V_view_grid = self._calculate_vf_plane_intersections(V_display_grid, V_user_position)
+            display_grid = V_view_grid
         else:                   # /**예외처리**/
             print("state 오류. state:", state)
 
