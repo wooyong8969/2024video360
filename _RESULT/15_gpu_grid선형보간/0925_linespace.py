@@ -27,8 +27,8 @@ webcam_position = cp.array([0, 90, 0])
 webcam_D = 360
 webcam_ratio = 9 / 16
 
-horizon_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(4))
-vertical_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(4)) * webcam_ratio
+horizon_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(6))
+vertical_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(6)) * webcam_ratio
 webcam_info = [webcam_position, horizon_tan, vertical_tan]
 
 display_corners = cp.array([[-31, 90, -3], [31, 90, -3],
