@@ -15,8 +15,11 @@ sphere_radius = 1000
 
 # 웹캠 관련 변수들
 webcam_position = cp.array([0, 90, 0])
-horizon_tan = cp.float32(360) * cp.tan(cp.pi / cp.float32(4))
-vertical_tan = cp.float32(360) * cp.tan(cp.pi / cp.float32(4)) * (9 / 16)
+webcam_D = 360
+webcam_ratio = 9 / 16
+
+horizon_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(4))
+vertical_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(4)) * webcam_ratio
 webcam_info = [webcam_position, horizon_tan, vertical_tan]
 
 display_corners = cp.array([[-31, 90, -3], [31, 90, -3],
@@ -46,10 +49,11 @@ while True:
     if state in [1, 2]:
         ret, frame = video.read()
         success, image = capf.read()
-    elif state == 3:
+    elif state == 3:    # 거울모드
         ret, frame = capf.read()
+        frame = cv2.flip(frame, 0)
         success, image = capf.read()
-    elif state == 4:
+    elif state == 4:    # 투명모드
         ret, frame = capb.read()
         frame = cv2.flip(frame, 1)
         success, image = capf.read()
@@ -81,12 +85,10 @@ while True:
         print("main 2. 모니터-사용자 거리 계산", ry)
 
         try:
-            # Assuming `toUSAFoV` returns a CuPy array
             frame_usafov = usafov.toUSAFoV(frame, image.shape, eye_center, ry, state)
 
-            # Ensure conversion to NumPy array
             if isinstance(frame_usafov, cp.ndarray):
-                frame_usafov = frame_usafov.get()  # Convert to NumPy array
+                frame_usafov = frame_usafov.get()
             ed = time()
             print("main 3. frame 생성 완료", ed - st)
         except Exception as e:
