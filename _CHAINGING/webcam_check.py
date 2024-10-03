@@ -1,16 +1,21 @@
 import cv2
 import numpy as np
 
-cap = cv2.VideoCapture(0)
-cap2 = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(2)
+
+
+
+cap2 = cv2.VideoCapture(3)
 
 while cap.isOpened():
     success, frame = cap.read()
+    frame = cv2.flip(frame, 0)
     if not success:
         print("웹캠 1 오류")
         break
 
     success, frame2= cap2.read()
+    frame2 = cv2.flip(frame2, 0)
     if not success:
         print("웹캠 2 오류")
         break

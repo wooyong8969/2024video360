@@ -142,7 +142,7 @@ class USAFoV():
         result_image = cv2.remap(frame, x_map, y_map, interpolation=cv2.INTER_LINEAR)
 
         # 거울 모드 처리
-        if state == 3:
+        if state in [3, 4]:
             result_image = cv2.flip(result_image, 1)
 
         return result_image

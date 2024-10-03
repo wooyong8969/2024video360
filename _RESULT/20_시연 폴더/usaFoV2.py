@@ -21,6 +21,7 @@ class USAFoV():
         self.webcam_position = cp.array(webcam_info[0])
         self.horizon_tan = cp.array(webcam_info[1])
         self.vertical_tan = cp.array(webcam_info[2])
+        self.webcam_D = cp.array(webcam_info[3])
 
         self.display_corners = cp.array(display_corners)
 
@@ -98,7 +99,7 @@ class USAFoV():
 
     def _calculate_vf_plane_intersections(self, V_display_grid, V_user_position):
         '''영상 좌표계 - 직선과 평면의 교점 계산'''
-        y_plane = cp.float32(360)
+        y_plane = self.webcam_D
         direction = V_display_grid - V_user_position
 
         t = (y_plane - V_user_position[1]) / direction[..., 1]
@@ -134,15 +135,16 @@ class USAFoV():
         if state in [3, 4]:  # remap 배열 생성
             x_map = (((display_grid[0] / (cp.float32(2) * self.horizon_tan)) + cp.float32(0.5)) * self.frame_width).astype(cp.float32).get()
             y_map = ((-1) * (display_grid[2] / (self.vertical_tan * cp.float32(2)) - cp.float32(0.5)) * self.frame_height).astype(cp.float32).get()
+            result_image = cv2.remap(frame, x_map, y_map, interpolation=cv2.INTER_LINEAR)
+
         else:
             display_theta, display_phi = self._convert_to_spherical(display_grid)
             x_map = (((self.PI + display_theta) / self.PI/2) * self.frame_width).astype(cp.float32).get()
             y_map = ((self.PI_2 - display_phi / self.PI_2/2) * self.frame_height).astype(cp.float32).get()
-
-        result_image = cv2.remap(frame, x_map, y_map, interpolation=cv2.INTER_LINEAR)
+            result_image = cv2.remap(frame, x_map, y_map, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
 
         # 거울 모드 처리
-        if state == 3:
+        if state in [3, 4]:
             result_image = cv2.flip(result_image, 1)
 
         return result_image

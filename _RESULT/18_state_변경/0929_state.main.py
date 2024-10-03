@@ -8,73 +8,7 @@ from time import time
 from screeninfo import get_monitors
 
 
-'''사용자 정의값들'''
-
-# ry 계산 위한 변수들
-base_distance_cm = 70
-base_width_px = 115
-sphere_radius = 1000
-z = 0
-
-# 웹캠 관련 변수들
-webcam_position = cp.array([0, 19, 46])
-webcam_D = 360
-webcam_ratio = 480 / 640
-
-horizon_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(8))
-vertical_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(8)) * webcam_ratio
-webcam_info = [webcam_position, horizon_tan, vertical_tan]
-
-# 모니터 관련 정보
-monitors = get_monitors()
-monitor1 = monitors[0]
-monitor_width1 = monitor1.width
-monitor_height1 = monitor1.height
-
-display_corners = [
-    cp.array([[-19.5, 19, 41 + z], [19.5, 19, 41 + z],
-              [-19.5, 19, 14 + z], [19.5, 19, 14 + z]])  # 1번 모니터
-]
-
-display_shapes = [(monitor1.height, monitor1.width)]
-
-if len(monitors) > 1:
-    monitor2 = monitors[1]
-    monitor_width2 = monitor2.width
-    monitor_height2 = monitor2.height
-    display_shapes.append((monitor2.height, monitor2.width))
-
-    display_corners.append(
-        cp.array([[-19.5, 19, 14 + z], [19.5, 19, 14 + z],
-                  [-19.5, 19, 0 + z], [19.5, 19, 0 + z]])  # 2번 모니터
-    )
-
-
-'''초기 설정'''
-
-preferred_eye = int(input("주시안을 입력해 주세요. (1: 오른쪽, 2: 왼쪽): "))
-state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정, 3: 거울 모드, 4: 투명 모드): "))
-
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\gnomonic.mp4'
-capf = cv2.VideoCapture(0)  # 정면 웹캠
-capb = cv2.VideoCapture(2)  # 후면 웹캠
-video = cv2.VideoCapture(video_path)
-ret, frame = video.read()
-
-# 각 화면에 대한 USAFoV 객체 생성
-usafov_1 = USAFoV(display_shape=display_shapes[0],
-                  webcam_info=webcam_info,
-                  display_corners=display_corners[0],
-                  sphere_radius=sphere_radius)
-
-if len(monitors) > 1:
-    usafov_2 = USAFoV(display_shape=display_shapes[1],
-                      webcam_info=webcam_info,
-                      display_corners=display_corners[1],
-                      sphere_radius=sphere_radius)
-
-detector = FaceLandmarkDetector()
-
+'''#############################################################################################'''
 '''모니터 조정 설정'''
 
 rotation_angle = cp.pi / 180  # 회전 각도 1도
@@ -162,38 +96,115 @@ def adjust_monitor(key, corners):
 
     return corners, monitor_changed
 
-# 모니터 수정 플래그
+# 키 입력 플래그
 adjust_monitor_1 = False
 adjust_monitor_2 = False
 monitor_updated = False
+state_adjust_mode = False
 
 
+'''#############################################################################################'''
+'''사용자 정의값들'''
+
+# ry 계산 위한 변수들
+base_distance_cm = 70
+base_width_px = 115
+sphere_radius = 1000
+z = 0
+
+# 웹캠 관련 변수들
+webcam_position = cp.array([0, 19, 46])
+webcam_D = 20
+webcam_ratio = 480 / 640
+
+horizon_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(4))
+vertical_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(4)) * webcam_ratio
+webcam_info = [webcam_position, horizon_tan, vertical_tan]
+
+# 모니터 관련 정보
+monitors = get_monitors()
+monitor1 = monitors[0]
+monitor_width1 = monitor1.width
+monitor_height1 = monitor1.height
+
+display_corners = [
+    cp.array([[-19.5, 19, 41 + z], [19.5, 19, 41 + z],
+              [-19.5, 19, 14 + z], [19.5, 19, 14 + z]])  # 1번 모니터
+]
+
+display_shapes = [(monitor1.height, monitor1.width)]
+
+if len(monitors) > 1:
+    monitor2 = monitors[1]
+    monitor_width2 = monitor2.width
+    monitor_height2 = monitor2.height
+    display_shapes.append((monitor2.height, monitor2.width))
+
+    display_corners.append(
+        cp.array([[-19.5, 19, 14 + z], [19.5, 19, 14 + z],
+                  [-19.5, 19, 0 + z], [19.5, 19, 0 + z]])  # 2번 모니터
+    )
+
+
+'''#############################################################################################'''
+'''초기 설정'''
+
+preferred_eye = int(input("주시안을 입력해 주세요. (1: 오른쪽, 2: 왼쪽): "))
+state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정, 3: 거울 모드, 4: 투명 모드): "))
+
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\gnomonic.mp4'
+capf = cv2.VideoCapture(0)  # 정면 웹캠
+capb = cv2.VideoCapture(2)  # 후면 웹캠
+video = cv2.VideoCapture(video_path)
+ret, frame = video.read()
+
+# 각 화면에 대한 USAFoV 객체 생성
+usafov_1 = USAFoV(display_shape=display_shapes[0],
+                  webcam_info=webcam_info,
+                  display_corners=display_corners[0],
+                  sphere_radius=sphere_radius)
+
+if len(monitors) > 1:
+    usafov_2 = USAFoV(display_shape=display_shapes[1],
+                      webcam_info=webcam_info,
+                      display_corners=display_corners[1],
+                      sphere_radius=sphere_radius)
+
+detector = FaceLandmarkDetector()
+
+
+'''#############################################################################################'''
 '''main loop'''
 
 while True:
     st = time()
 
-    # 카메라 상태에 따른 프레임 처리
-    if state in [1, 2]:
+    # 모드에 따른 프레임 처리
+    if state in [1, 2]: # 360 영상
         success, image = capf.read()
     elif state == 3:  # 거울모드
         ret, frame = capf.read()
         success, image = capf.read()
-    elif state == 4:  # 투명모드
+    elif state == 4:  # 투명모드 
         ret, frame = capb.read()
         frame = cv2.flip(frame, 1)
         success, image = capf.read()
     else:
         print("잘못된 상태 값입니다.")
         break
-
-    if not ret or not success:
+    if not ret:
         print("영상 오류")
         break
+    if not success:
+        print("웹캠 오류")
+        break
+
 
     # 얼굴 랜드마크 처리
     results, image = detector.process_frame(image)
     right_eye_points, left_eye_points = detector.draw_landmarks(image, results)
+    print("1. 얼굴 랜드마크 인식 완료")
+
 
     # 사용자 거리 계산
     if right_eye_points and left_eye_points:
@@ -201,9 +212,11 @@ while True:
         _, face_size = detector.get_face_size(results, image.shape)
         face_width = face_size[0]
         ry = (base_distance_cm * base_width_px) / face_width
+        print("2. ry 측정 완료", ry)
     else:
         eye_center = [320, 240]
         ry = 70
+
 
     # 모니터 좌표 조정 시 객체 재생성
     if monitor_updated:
@@ -212,31 +225,36 @@ while True:
                           display_corners=display_corners[0],
                           sphere_radius=sphere_radius)
 
-        usafov_2 = USAFoV(display_shape=display_shapes[1],
-                          webcam_info=webcam_info,
-                          display_corners=display_corners[1],
-                          sphere_radius=sphere_radius)
-        print("USAFoV 객체 재생성 완료")
+        if len(monitors) > 1:
+            usafov_2 = USAFoV(display_shape=display_shapes[1],
+                              webcam_info=webcam_info,
+                              display_corners=display_corners[1],
+                              sphere_radius=sphere_radius)
+        print("3. USAFoV 객체 재생성 완료")
         monitor_updated = False
 
-    # frame 생성
+
+    # frame 생성 및 처리
     try:
         frame_usafov_1 = usafov_1.toUSAFoV(frame, image.shape, eye_center, ry, state)
         if isinstance(frame_usafov_1, cp.ndarray):
             frame_usafov_1 = frame_usafov_1.get()
 
-        if state in [1, 2] and len(display_corners) >= 2:
+        if state in [1, 2] and len(monitors) > 1:
             frame_usafov_2 = usafov_2.toUSAFoV(frame, image.shape, eye_center, ry, state)
             if isinstance(frame_usafov_2, cp.ndarray):
                 frame_usafov_2 = frame_usafov_2.get()
             cv2.imshow('2 View', frame_usafov_2)
 
+        cv2.imshow('1 View', frame_usafov_1)
+
         ed = time()
+        print("4. frame 생성 소요 시간", ed - st)
+
     except Exception as e:
         print(f"Error during frame processing: {e}")
         break
 
-    cv2.imshow('1 View', frame_usafov_1)
 
     # 키 입력 처리
     key = cv2.waitKey(1)
@@ -251,11 +269,34 @@ while True:
         adjust_monitor_2 = True
         print("2번 모니터 조정 모드")
 
+    elif key == ord('c'):  # 모드 변경 시작
+        state_adjust_mode = True
+        print("state 변경 모드")
+
     elif key == ord('q'):  # 종료
         print("최종 모니터 좌표 출력:")
         print("1번 모니터 좌표: ", display_corners[0])
         print("2번 모니터 좌표: ", display_corners[1])
         break
+
+    # state 변경
+    if state_adjust_mode:
+        if key == ord('1'):
+            state = 1
+            print("1번 사용자 고정 모드")
+            state_adjust_mode = False
+        elif key == ord('2'):
+            state = 2
+            print("2번 디스플레이 고정 모드")
+            state_adjust_mode = False
+        elif key == ord('3'):
+            state = 3
+            print("3번 거울 모드")
+            state_adjust_mode = False
+        elif key == ord('4'):
+            state = 4
+            print("4번 투명 모드")
+            state_adjust_mode = False
 
     # 1번 모니터 좌표 조정
     if adjust_monitor_1:

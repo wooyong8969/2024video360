@@ -19,18 +19,19 @@ class USAFoV():
         self.sphere_radius = sphere_radius
 
         self.webcam_position = cp.array(webcam_info[0])
-        self.horizon_tan = cp.array(webcam_info[1])
-        self.vertical_tan = cp.array(webcam_info[2])
+        self.f_webcam = cp.array(webcam_info[1])    # (image 웹캠) theta, alpha
+        self.b_webcam = cp.array(webcam_info[2])    # (frame 웹캠) horizon_tan, vertical_tan
+        self.webcam_D = cp.array(webcam_info[3])
 
         self.display_corners = cp.array(display_corners)
 
-    def _calculate_df_position(self, eye_center, ry, webcam_theta, webcam_alpha, state):
+    def _calculate_df_position(self, eye_center, ry, state):
         '''디스플레이 좌표계 - 사용자의 위치 계산'''
         reverse = -1 if state >= 3 else 1
 
-        x_component = reverse * ry * ((((-2 * tan(webcam_theta / 2) * eye_center[0]) / self.image_width) + tan(webcam_theta / 2)))
+        x_component = reverse * ry * ((((-2 * tan(self.f_webcam[0] / 2) * eye_center[0]) / self.image_width) + tan(self.f_webcam[0] / 2)))
         y_component = -ry
-        z_component = ry * (((-2 * tan(webcam_alpha / 2) * eye_center[1]) / self.image_height) + tan(webcam_alpha / 2))
+        z_component = ry * (((-2 * tan(self.f_webcam[1] / 2) * eye_center[1]) / self.image_height) + tan(self.f_webcam[1] / 2))
 
         D_user_position = cp.array([x_component, y_component, z_component], dtype=cp.float32)
 
@@ -98,7 +99,7 @@ class USAFoV():
 
     def _calculate_vf_plane_intersections(self, V_display_grid, V_user_position):
         '''영상 좌표계 - 직선과 평면의 교점 계산'''
-        y_plane = cp.float32(360)
+        y_plane = self.webcam_D
         direction = V_display_grid - V_user_position
 
         t = (y_plane - V_user_position[1]) / direction[..., 1]
@@ -112,7 +113,7 @@ class USAFoV():
         self.image_height, self.image_width = image_shape[:2]
         self.frame_height, self.frame_width = frame.shape[:2]
 
-        W_user_position = self._calculate_df_position(eye_center, ry, self.PI/3, (self.PI/3)*2/3, state)
+        W_user_position = self._calculate_df_position(eye_center, ry, state)
 
         if state == 1:          # /**사용자 고정 모드**/
             U_display_corners = self._calculate_uf_corners(W_user_position)  # 디스플레이 위치 재계산
@@ -132,17 +133,18 @@ class USAFoV():
             print("state 오류. state:", state)
 
         if state in [3, 4]:  # remap 배열 생성
-            x_map = (((display_grid[0] / (cp.float32(2) * self.horizon_tan)) + cp.float32(0.5)) * self.frame_width).astype(cp.float32).get()
-            y_map = ((-1) * (display_grid[2] / (self.vertical_tan * cp.float32(2)) - cp.float32(0.5)) * self.frame_height).astype(cp.float32).get()
+            x_map = (((display_grid[0] / (cp.float32(2) * self.b_webcam[0])) + cp.float32(0.5)) * self.frame_width).astype(cp.float32).get()
+            y_map = ((-1) * (display_grid[2] / (self.b_webcam[1] * cp.float32(2)) - cp.float32(0.5)) * self.frame_height).astype(cp.float32).get()
+            result_image = cv2.remap(frame, x_map, y_map, interpolation=cv2.INTER_LINEAR)
+
         else:
             display_theta, display_phi = self._convert_to_spherical(display_grid)
             x_map = (((self.PI + display_theta) / self.PI/2) * self.frame_width).astype(cp.float32).get()
             y_map = ((self.PI_2 - display_phi / self.PI_2/2) * self.frame_height).astype(cp.float32).get()
-
-        result_image = cv2.remap(frame, x_map, y_map, interpolation=cv2.INTER_LINEAR)
+            result_image = cv2.remap(frame, x_map, y_map, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_WRAP)
 
         # 거울 모드 처리
-        if state == 3:
+        if state in [4]:
             result_image = cv2.flip(result_image, 1)
 
         return result_image
