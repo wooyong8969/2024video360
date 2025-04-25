@@ -104,8 +104,8 @@ num_monitors_to_use = 1
 
 '''#############################################################################################'''
 '''사용자 정의값들'''
-base_distance_cm = 70
-base_width_px = 30
+base_distance_cm = 100
+base_width_px = 10
 sphere_radius = 1000
 y = 0
 z = 11.5
@@ -115,29 +115,30 @@ webcam_position_f = cp.array([0, -7, 0])
 webcam_D = cp.float32(20)
 webcam_ratio = 480 / 640
 
-f_horizon_tan = cp.pi / cp.float32(6)   # image 웹캠 화각 정보
-f_vertical_tan = cp.pi / cp.float32(6) * webcam_ratio
+f_horizon_tan = cp.pi / cp.float32(180 / 110)   # image 웹캠 화각 정보
+f_vertical_tan = cp.pi / cp.float32(180 / 80)
 
-b_horizon_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(6))                    # frame 웹캠 화각 정보
-b_vertical_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(6)) * webcam_ratio
+b_horizon_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(180 / 90))                    # frame 웹캠 화각 정보
+b_vertical_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(180 / 61))
 
 webcam_info = [webcam_position_f, [f_horizon_tan, f_vertical_tan], [b_horizon_tan, b_vertical_tan],webcam_D]
 
 # 모니터 관련 정보
 monitors = get_monitors()
-monitor1 = monitors[0]
+monitor1 = monitors[1]
 monitor_width1 = monitor1.width
 monitor_height1 = monitor1.height
 
 display_corners = [
-    cp.array([[-18.25, 50 + y, 0 + z], [18.25, 50 + y, 0 + z],
-              [-18.25, 50 + y, -23 + z], [18.25, 50 + y, -23 + z]])  # 1번 모니터
+    cp.array([[-21.25,   0.,     8.5 ],
+ [ 15.25,   0.,     8.5 ],
+ [-21.25,   0.,   -14.5 ],
+ [ 15.25,   0.,   -14.5 ]])  # 1번 모니터
 ]
-
 display_shapes = [(monitor1.height, monitor1.width)]
 
 if len(monitors) > 1:
-    monitor2 = monitors[1]
+    monitor2 = monitors[0]
     monitor_width2 = monitor2.width
     monitor_height2 = monitor2.height
     display_shapes.append((monitor2.height, monitor2.width))
@@ -164,11 +165,11 @@ if len(monitors) > 2:
 preferred_eye = int(input("주시안을 입력해 주세요. (1: 오른쪽, 2: 왼쪽): "))
 state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정, 3: 거울 모드, 4: 투명 모드): "))
 
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\드론-야구장-앞뒤.mp4'
-capf = cv2.VideoCapture(0)  # 정면 웹캠
-capb = cv2.VideoCapture(0)  # 후면 웹캠
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\beach_1080.mp4'
+capf = cv2.VideoCapture(1)  # 정면 웹캠
+capb = cv2.VideoCapture(3)  # 후면 웹캠
 video = cv2.VideoCapture(video_path)
-ret, frame = video.read()
+
 
 # 각 화면에 대한 USAFoV 객체 생성
 usafov_1 = USAFoV(display_shape=display_shapes[0],
@@ -198,6 +199,7 @@ while True:
 
     # 모드에 따른 프레임 처리
     if state in [1, 2]: # 360 영상
+        ret, frame = video.read()
         success, image = capf.read()
     elif state == 3:  # 거울모드
         ret, frame = capf.read()

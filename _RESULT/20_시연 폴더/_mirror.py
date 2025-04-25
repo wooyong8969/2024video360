@@ -112,11 +112,11 @@ z = 11.5
 
 # 웹캠 관련 변수들
 webcam_position_1 = cp.array([0, 0, 0])
-webcam_D = cp.float32(450)
+webcam_D = cp.float32(4500)
 webcam_ratio = 480 / 640
 
-horizon_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(8))
-vertical_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(8)) * webcam_ratio
+horizon_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(180) * cp.float32(72.6 / 2))
+vertical_tan = cp.float32(webcam_D) * cp.tan(cp.pi / cp.float32(180) * cp.float32(45.2 / 2))
 webcam_info = [webcam_position_1, horizon_tan, vertical_tan, webcam_D]
 
 # 모니터 관련 정보
@@ -126,8 +126,10 @@ monitor_width1 = monitor1.width
 monitor_height1 = monitor1.height
 
 display_corners = [
-    cp.array([[-18.25, 0 + y, 0 + z], [18.25, 0 + y, 0 + z],
-              [-18.25, 0 + y, -23 + z], [18.25, 0 + y, -23 + z]])  # 1번 모니터
+    cp.array([[-21.25,   0.,     8.5 ],
+ [ 15.25,   0.,     8.5 ],
+ [-21.25,   0.,   -14.5 ],
+ [ 15.25,   0.,   -14.5 ]])  # 1번 모니터
 ]
 
 display_shapes = [(monitor1.height, monitor1.width)]
@@ -160,7 +162,7 @@ if len(monitors) > 2:
 preferred_eye = int(input("주시안을 입력해 주세요. (1: 오른쪽, 2: 왼쪽): "))
 state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정, 3: 거울 모드, 4: 투명 모드): "))
 
-video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\드론-야구장-앞뒤.mp4'
+video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\beach_1440.mp4'
 capf = cv2.VideoCapture(0)  # 정면 웹캠
 capb = cv2.VideoCapture(0)  # 후면 웹캠
 video = cv2.VideoCapture(video_path)

@@ -160,7 +160,7 @@ preferred_eye = int(input("주시안을 입력해 주세요. (1: 오른쪽, 2: �
 state = int(input("원하는 모드를 선택해 주세요. (1: 사용자 고정, 2: 디스플레이 고정, 3: 거울 모드, 4: 투명 모드): "))
 
 video_path = r'D:\W00Y0NG\PRGM2\360WINDOW\2024video360\_VIDEO\gnomonic.mp4'
-capf = cv2.VideoCapture(2)  # 정면 웹캠
+capf = cv2.VideoCapture(1)  # 정면 웹캠
 capb = cv2.VideoCapture(3)  # 후면 웹캠
 video = cv2.VideoCapture(video_path)
 
